@@ -7,9 +7,9 @@ You should submit:
 databases should be defined, for example, forward and inverted indexes, mapping tables for
 URL <=> page ID and word <=> word ID conversion. The jdbm database schema depends on
 the functions implemented. You should include an explanation on your design. (Cindie)
-- the source codes of the spider and the test program
+- the source codes of the spider and the test program (Sean)
 - a readme.txt file containing the instructions to build the spider and the test program, and
-how to execute them. (Sean)
+how to execute them. (Ethan)
 - the db file(s) which contain the indexed 30 pages starting from
 https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm or
 https://comp4321-hkust.github.io/testpages/testpage.htm (backup website). (Ethan)
