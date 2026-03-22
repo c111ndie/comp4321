@@ -9,7 +9,7 @@ URL <=> page ID and word <=> word ID conversion. The jdbm database schema depend
 the functions implemented. You should include an explanation on your design. (Cindie)
 - the source codes of the spider and the test program (Sean)
 - a readme.txt file containing the instructions to build the spider and the test program, and
-how to execute them. (Ethan)
+how to execute them. (Cindie)
 - the db file(s) which contain the indexed 30 pages starting from
 https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm or
 https://comp4321-hkust.github.io/testpages/testpage.htm (backup website). (Ethan)
