@@ -17,6 +17,6 @@ https://comp4321-hkust.github.io/testpages/testpage.htm (backup website).
 Zip the files and submit via Canvas. The assignment name is Phase1
 
 Tasks assignment:
-spider - cindie
-indexer - sean
-test program + data retrieval - ethan
+- spider: cindie
+- indexer: sean
+- test program + data retrieval: ethan
