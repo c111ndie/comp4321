@@ -31,3 +31,6 @@ An indexer that extracts keywords from a page and inserts them into an inverted 
 # Search Engine
 
 # Web Interface
+
+# Q&A
+Slido link: https://app.sli.do/event/udSJsTVFvWCu8YFq1Q9ysi/live/questions
