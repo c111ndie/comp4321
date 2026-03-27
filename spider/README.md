@@ -1,0 +1,42 @@
+# COMP4321 Spider (no indexer)
+
+This repository implements the **spider/crawler** part (BFS crawl) of the COMP4321 project, **without** the indexer.
+
+## Requirements
+
+- Java 11+
+- No system Maven required (uses Maven Wrapper)
+
+## Build
+
+```bash
+./mvnw -q test
+./mvnw -q package
+```
+
+## Run
+
+```bash
+java -jar target/spider-1.0.0.jar \
+  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
+  --max-pages 30 \
+  --out out
+```
+
+Outputs:
+
+- `out/pages/<pageId>.html` (raw HTML)
+- `out/state.json` (crawl state, includes `parentPageIds`)
+- `out/spider_result.txt` (phase-1 style output; keyword line is blank)
+
+## Lab-aligned utilities included (optional)
+
+The project also includes small, runnable helpers aligned with COMP4321 labs:
+
+- Lab 2 (HTMLParser) style functions: `src/main/java/com/comp4321/spider/labs/Lab2Crawler.java`
+- Lab 3 (stopwords + Porter stemmer): `src/main/java/IRUtilities/StopStem.java`
+
+Lab 4 (JSP basics) sample pages:
+
+- `web/lab4/lab4.html`
+- `web/lab4/lab4.jsp`

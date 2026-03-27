@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Java / Maven
+*.class
+hs_err_pid*
+**/target/
+
+# Spider outputs
+**/out/
