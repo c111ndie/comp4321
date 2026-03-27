@@ -34,7 +34,6 @@ Outputs:
 
 - `out/pages/page<pageId>.html` (raw HTML)
 - `out/state.json` (crawl state, includes `parentPageIds`)
-- `out/spider_result.txt` (phase-1 style output; keyword line is blank)
 
 Notes:
 

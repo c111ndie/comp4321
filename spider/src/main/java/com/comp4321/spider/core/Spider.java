@@ -5,7 +5,6 @@ import com.comp4321.spider.http.FetchResult;
 import com.comp4321.spider.http.HttpFetcher;
 import com.comp4321.spider.labs.Crawler;
 import com.comp4321.spider.labs.Lab2Crawler;
-import com.comp4321.spider.output.SpiderResultWriter;
 import com.comp4321.spider.store.PageRecord;
 import com.comp4321.spider.store.PageStore;
 import com.comp4321.spider.util.HttpDates;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
@@ -152,8 +150,6 @@ public final class Spider {
             System.err.println("Spider warning: no pages were saved. Check that the seed URL is reachable and returns HTTP 2xx HTML.");
         }
         store.recomputeParentLinks();
-        Path outPath = store.getOutDir().resolve("spider_result.txt");
-        new SpiderResultWriter().write(outPath, store.pagesByIdAscending());
         store.checkpoint();
         return new CrawlReport(processedThisRun, frontier.seenCount());
     }
