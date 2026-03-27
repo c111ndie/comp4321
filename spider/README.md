@@ -35,3 +35,8 @@ Outputs:
 - `out/pages/page<pageId>.html` (raw HTML)
 - `out/state.json` (crawl state, includes `parentPageIds`)
 - `out/spider_result.txt` (phase-1 style output; keyword line is blank)
+
+Notes:
+
+- Crawl strategy is BFS and restricted to the same host as the seed URL.
+- Link extraction uses the COMP4321 Lab 2 HTMLParser approach (`LinkBean`).

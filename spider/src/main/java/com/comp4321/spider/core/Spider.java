@@ -4,6 +4,7 @@ import com.comp4321.spider.http.FetchHints;
 import com.comp4321.spider.http.FetchResult;
 import com.comp4321.spider.http.HttpFetcher;
 import com.comp4321.spider.labs.Crawler;
+import com.comp4321.spider.labs.Lab2Crawler;
 import com.comp4321.spider.output.SpiderResultWriter;
 import com.comp4321.spider.store.PageRecord;
 import com.comp4321.spider.store.PageStore;
@@ -24,11 +25,13 @@ public final class Spider {
     private final SpiderConfig config;
     private final HttpFetcher fetcher;
     private final Crawler crawler;
+    private final Lab2Crawler lab2Crawler;
 
     public Spider(SpiderConfig config) {
         this.config = config;
         this.fetcher = new HttpFetcher(Duration.ofSeconds(30), config.userAgent);
         this.crawler = new Crawler();
+        this.lab2Crawler = new Lab2Crawler();
     }
 
     public CrawlReport crawl() throws IOException, InterruptedException {
@@ -116,7 +119,7 @@ public final class Spider {
                 record.lastModifiedRfc1123 = HttpDates.formatRfc1123(chosen.instant == null ? result.fetchTime : chosen.instant);
                 record.lastModifiedFromHeader = chosen.fromLastModifiedHeader;
 
-                Set<URI> outLinks = new java.util.LinkedHashSet<>(crawler.extractLinks(html, url));
+                Set<URI> outLinks = extractLinksLab2Style(url, html);
                 record.outLinks.clear();
                 for (URI link : outLinks) {
                     if (!config.scopePolicy.allows(link)) {
@@ -153,6 +156,19 @@ public final class Spider {
         new SpiderResultWriter().write(outPath, store.pagesByIdAscending());
         store.checkpoint();
         return new CrawlReport(processedThisRun, frontier.seenCount());
+    }
+
+    private Set<URI> extractLinksLab2Style(URI pageUrl, String htmlFallback) {
+        java.util.LinkedHashSet<URI> out = new java.util.LinkedHashSet<>();
+        try {
+            var links = lab2Crawler.extractLinks(pageUrl.toString());
+            for (String s : links) {
+                UrlCanonicalizer.resolveAndCanonicalize(pageUrl, s).ifPresent(out::add);
+            }
+            return out;
+        } catch (Exception ignored) {
+            return new java.util.LinkedHashSet<>(crawler.extractLinks(htmlFallback, pageUrl));
+        }
     }
 
     private static boolean isHtmlContentType(String contentType) {
