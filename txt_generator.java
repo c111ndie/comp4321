@@ -1,3 +1,7 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  * This class accepts webpage data and packages them into one object
  *
@@ -47,11 +51,6 @@ public class WebpageData
         }
     }
 }
-
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 
 /**
  * This class uses the WebpageData class to write content on the txt file.
