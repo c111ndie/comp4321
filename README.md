@@ -12,7 +12,8 @@ the functions implemented. You should include an explanation on your design. (Se
 how to execute them. (Cindie)
 - the db file(s) which contain the indexed 30 pages starting from
 https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm or
-https://comp4321-hkust.github.io/testpages/testpage.htm (backup website). (Ethan)
+https://comp4321-hkust.github.io/testpages/testpage.htm (backup website).
+New Target URL: https://hitcslj.github.io/TestPages/testpage.html (Ethan)
 - spider result.txt which is the output of test program (Ethan)
 
 Zip the files and submit via Canvas. The assignment name is Phase1
