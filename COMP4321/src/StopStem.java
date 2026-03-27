@@ -25,11 +25,11 @@ public class StopStem
 		// use BufferedReader to extract the stopwords in stopwords.txt (path passed as parameter str)
 		// add them to HashSet<String> stopWords
 		// MODIFY THE BELOW CODE AND ADD YOUR CODES HERE
-		stopWords.add("is");
+		/*stopWords.add("is");
 		stopWords.add("am");
 		stopWords.add("are");
 		stopWords.add("was");
-		stopWords.add("were");
+		stopWords.add("were");*/
 	}
 	public String stem(String str)
 	{
