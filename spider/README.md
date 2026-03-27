@@ -22,6 +22,13 @@ java -jar target/spider-1.0.0.jar \
   --max-pages 30 \
   --out out
 ```
+- Run this if the above fails:
+```bash
+java -jar spider/target/spider-1.0.0.jar \
+  --seed https://hitcslj.github.io/TestPages/testpage.htm \
+  --max-pages 30 \
+  --out out
+```
 
 Outputs:
 
