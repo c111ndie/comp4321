@@ -27,6 +27,6 @@ Notes:
 - Re-running the spider reuses out/state.json and uses If-Modified-Since when Last-Modified was recorded.
 
 Outputs (under the chosen --out directory):
-- pages/<pageId>.html        Raw HTML of fetched pages
+- pages/page<pageId>.html    Raw HTML of fetched pages
 - state.json                Persistent crawl state (URL<->pageId, metadata, outLinks, parentPageIds)
 - spider_result.txt          Phase-1 style output (keyword line left blank since indexer is out of scope)

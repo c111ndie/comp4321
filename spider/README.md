@@ -25,7 +25,7 @@ java -jar target/spider-1.0.0.jar \
 
 Outputs:
 
-- `out/pages/<pageId>.html` (raw HTML)
+- `out/pages/page<pageId>.html` (raw HTML)
 - `out/state.json` (crawl state, includes `parentPageIds`)
 - `out/spider_result.txt` (phase-1 style output; keyword line is blank)
 

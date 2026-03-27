@@ -34,6 +34,7 @@ public final class PageStore {
         this.state = loadState().orElseGet(CrawlState::new);
         normalizeMaps();
         normalizeRecords();
+        migrateLegacyHtmlFilenames();
         recomputeParentLinks();
     }
 
@@ -117,7 +118,7 @@ public final class PageStore {
         if (html == null) {
             html = "";
         }
-        Path p = pagesDir.resolve(page.pageId + ".html");
+        Path p = htmlPath(page.pageId);
         Files.writeString(p, html, StandardCharsets.UTF_8);
     }
 
@@ -125,14 +126,44 @@ public final class PageStore {
         if (page == null) {
             return Optional.empty();
         }
-        Path p = pagesDir.resolve(page.pageId + ".html");
+        Path p = htmlPath(page.pageId);
         if (!Files.exists(p)) {
-            return Optional.empty();
+            Path legacy = legacyHtmlPath(page.pageId);
+            if (!Files.exists(legacy)) {
+                return Optional.empty();
+            }
+            p = legacy;
         }
         try {
             return Optional.of(Files.readString(p, StandardCharsets.UTF_8));
         } catch (IOException e) {
             return Optional.empty();
+        }
+    }
+
+    private Path htmlPath(int pageId) {
+        return pagesDir.resolve("page" + pageId + ".html");
+    }
+
+    private Path legacyHtmlPath(int pageId) {
+        return pagesDir.resolve(pageId + ".html");
+    }
+
+    private void migrateLegacyHtmlFilenames() {
+        for (PageRecord r : state.pages.values()) {
+            if (r == null) {
+                continue;
+            }
+            Path legacy = legacyHtmlPath(r.pageId);
+            Path desired = htmlPath(r.pageId);
+            if (!Files.exists(legacy) || Files.exists(desired)) {
+                continue;
+            }
+            try {
+                Files.move(legacy, desired, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException ignored) {
+                // Best-effort migration; spider can still proceed.
+            }
         }
     }
 
