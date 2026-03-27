@@ -60,6 +60,16 @@ set ERROR_CODE=0
 @REM ==== START VALIDATION ====
 if not "%JAVA_HOME%" == "" goto OkJHome
 
+@REM Try to auto-detect JAVA_HOME from java.exe on PATH (helps on fresh Windows setups).
+set "JAVA_EXE="
+for /f "delims=" %%i in ('where java.exe 2^>nul') do (set "JAVA_EXE=%%i" & goto foundJavaExe)
+:foundJavaExe
+if not "%JAVA_EXE%" == "" (
+  for %%d in ("%JAVA_EXE%") do set "JAVA_BIN_DIR=%%~dpd"
+  for %%d in ("%JAVA_BIN_DIR%..") do set "JAVA_HOME=%%~fd"
+)
+if not "%JAVA_HOME%" == "" goto OkJHome
+
 echo.
 echo Error: JAVA_HOME not found in your environment. >&2
 echo Please set the JAVA_HOME variable in your environment to match the >&2
