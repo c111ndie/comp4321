@@ -8,11 +8,7 @@ import java.io.IOException;
 
 /**
  * This class accepts webpage data and packages them into one object
- *
- * @author Ethan
- * @version 27/3
  */
-
 
 public class WebpageData
 {
@@ -62,6 +58,28 @@ public class WebpageData
         this.keywords = null; 
         this.freq = null;
         this.initialized = false;
+    }
+    public WebpageData(PageRecord page, String[] keywords, String[] freq) {
+        this.title = page.title;
+        this.url = page.url;
+        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
+        this.sizeChars = String.valueOf(page.sizeChars);
+        this.childLinks = page.outLinks.toArray(new String[0]);
+        // Keywords and frequencies are not available in PageRecord, so set to null
+        this.keywords = keywords; 
+        this.freq = freq;
+        this.initialized = true;
+    }
+    public WebpageData(PageRecord page, String[] keywords, int[] freq) {
+        this.title = page.title;
+        this.url = page.url;
+        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
+        this.sizeChars = String.valueOf(page.sizeChars);
+        this.childLinks = page.outLinks.toArray(new String[0]);
+        // Keywords and frequencies are not available in PageRecord, so set to null
+        this.keywords = keywords; 
+        this.freq = freq;
+        this.initialized = true;
     }
     public void loadWebpageData(String pageTitle, String url, String lastModDate, String sizeOfPage,
                        String[] keywords, int[] freq, String[] childLinks) {
@@ -123,9 +141,6 @@ public class WebpageData
 
 /**
  * This class uses the WebpageData class to write content on the txt file.
- *
- * @author Ethan
- * @version 27/3
  */
 public class Printer
 {
@@ -220,72 +235,3 @@ public class Printer
         catch (IOException e) {e.printStackTrace();}
         this.empty = false;
     }
-
-
-
- /***
-  * As a reminder
-  * 
-  * public final class PageRecord {
-    public int pageId;
-    public String url;
-    public String title;
-    public String lastModifiedRfc1123;
-    public boolean lastModifiedFromHeader;
-    public long sizeChars;
-    public Set<String> outLinks = new LinkedHashSet<>();
-    public Set<Integer> parentPageIds = new LinkedHashSet<>();
-    public boolean isHtml;
-
-    public PageRecord() {}
-
-    public PageRecord(int pageId, String url) {
-        this.pageId = pageId;
-        this.url = url;
-    }
-}
-
-
-Old code for ref
-    public void write(Path outPath, Map<Integer, PageRecord> pagesByIdAscending) throws IOException {
-        List<Integer> ids = new ArrayList<>(pagesByIdAscending.keySet());
-        ids.sort(Comparator.naturalOrder());
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            PageRecord page = pagesByIdAscending.get(ids.get(i));
-            if (page == null) {
-                continue;
-            }
-            sb.append(safe(page.title)).append('\n');
-            sb.append(safe(page.url)).append('\n');
-
-            String lm = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
-            sb.append(lm).append(",").append(page.sizeChars).append('\n');
-
-            sb.append('\n');
-
-            Set<String> outLinks = page.outLinks;
-            if (outLinks != null) {
-                int j = 0;
-                for (String link : outLinks) {
-                    sb.append(link).append('\n');
-                    if (++j >= 10) {
-                        break;
-                    }
-                }
-            }
-
-            if (i != ids.size() - 1) {
-                sb.append(SEPARATOR).append('\n');
-            }
-        }
-
-        Files.createDirectories(outPath.getParent());
-        Files.writeString(outPath, sb.toString(), StandardCharsets.UTF_8);
-
-
-  * 
-  *  */   
-}
-
