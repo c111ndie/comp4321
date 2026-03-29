@@ -1,61 +1,56 @@
-COMP4321 Spider + Indexer
------------------------------------------------------------
-
-This submission contains the spider/crawler and JDBM indexer for COMP4321 Phase 1 under the spider/ folder.
+More readable version in COMP4321/README.md
 
 Requirements
 - Java 11+
 - No system Maven required (uses Maven Wrapper)
 
-Java setup (macOS)
+JAVA SETUP (macOS)
 - If java is not available, install a JDK first.
-- Homebrew example:
-  - brew install openjdk@11
-  - export JAVA_HOME="/opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home"
-  - export PATH="$JAVA_HOME/bin:$PATH"
-  - java -version
+If you use Homebrew:
 
-Java setup (Windows)
-- Install OpenJDK 11 (for example, Temurin JDK 11).
-- Verify in Command Prompt or PowerShell with:
-  - java -version
+brew install openjdk@11
+export JAVA_HOME="/opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+java -version
 
-Build
-- All commands below must be run from inside the spider/ directory.
+JAVA SETUP (Windows)
+Download and install OpenJDK 11 (Temurin JDK 11, .msi installer).
+The installer sets JAVA_HOME and PATH automatically. Verify in a new Command Prompt or PowerShell:
+
+java -version
+
+BUILD
+- All commands below must be run from inside the spider/ directory (i.e. cd spider first if you cloned the repo and are at the root).
 
 macOS / Linux / Git Bash:
-1) cd spider
-2) ./mvnw -q clean package
+
+./mvnw -q clean package
 
 Windows Command Prompt:
-1) cd spider
-2) mvnw.cmd -q clean package
+
+mvnw.cmd -q clean package
 
 Windows PowerShell:
-1) cd spider
-2) .\mvnw.cmd -q clean package
 
-Run
+.\mvnw.cmd -q clean package
 
-macOS / Linux / Git Bash:
-1) cd spider
-2) java -jar target/spider-1.0.0.jar \
-     --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-     --max-pages 30 \
-     --out crawl-output \
-     --db-name indexDB \
-     --stopwords stopwords.txt
+RUN: Crawl, Index, and Export Results
 
-Windows Command Prompt / PowerShell:
-1) cd spider
-2) java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out crawl-output --db-name indexDB --stopwords stopwords.txt
+macOS / Linux / Git Bash / Windows:
 
+cd /workspaces/comp4321/spider
+./mvnw clean package -DskipTests
+
+java -jar target/spider-1.0.0.jar \
+  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
+  --max-pages 30 \
+  --out crawl-output \
+  --db-name indexDB \
+  --stopwords stopwords.txt
+
+java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
 
 Outputs
-- spider/crawl-output/pages/page<id>.html: raw HTML of each fetched page
-- spider/crawl-output/state.json: crawl state including URLs, titles, dates, and parent/child links
-- spider/indexDB.db and spider/indexDB.lg: JDBM database files
-
-Test Program
----------------------------------------------------------------
-
+- Reads all crawled pages from PageStore
+- Extracts keywords and frequencies from JDBM database for each page
+- Generates spider_result.txt with all pages and their keywords
