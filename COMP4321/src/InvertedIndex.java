@@ -36,7 +36,7 @@ public class InvertedIndex {
     tree.put(stem, plist);
 
     recman.commit();
-}
+	}
 
 	public void close() throws IOException {
 		recman.commit();
