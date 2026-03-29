@@ -22,17 +22,20 @@ public class Indexer {
     }
 
     private void processTerms(String docId, String[] terms, boolean isTitle) throws IOException {
-        for (String raw : terms) {
-            if (raw == null || raw.isEmpty()) continue;
-            String word = raw.toLowerCase();
+    int position = 0;
+    for (String raw : terms) {
+        if (raw == null || raw.isEmpty()) continue;
+        String word = raw.toLowerCase();
 
-            if (!stopStem.isStopWord(word)) {
-                String stem = stopStem.stem(word);
-                if (stem.isEmpty()) continue;
-                index.addWord(stem, docId, isTitle);
-            }
+        if (!stopStem.isStopWord(word)) {
+            String stem = stopStem.stem(word);
+            if (stem.isEmpty()) continue;
+
+            index.addWord(stem, docId, position, isTitle);
         }
+        position++;
     }
+}
 
     public void close() throws IOException {
         index.close();
