@@ -22,7 +22,10 @@ java -version
 
 ## Build
 
+Run from the `spider/` directory:
+
 ```bash
+cd spider
 ./mvnw -q clean package
 ```
 
@@ -43,4 +46,4 @@ Outputs:
 Notes:
 
 - Crawl strategy is BFS and restricted to the same host as the seed URL.
-- Link extraction uses the COMP4321 Lab 2 HTMLParser approach (`LinkBean`).
+- Link extraction parses `<a href>` tags from already-downloaded HTML using HTMLParser (no second HTTP request).

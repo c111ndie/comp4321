@@ -9,12 +9,13 @@ public final class PageRecord {
     public String title;
     public String lastModifiedRfc1123;
     public boolean lastModifiedFromHeader;
-    public long sizeChars;
+    public long sizeBytes;
     public Set<String> outLinks = new LinkedHashSet<>();
     public Set<Integer> parentPageIds = new LinkedHashSet<>();
     public boolean isHtml;
 
-    public PageRecord() {}
+    public PageRecord() {
+    }
 
     public PageRecord(int pageId, String url) {
         this.pageId = pageId;

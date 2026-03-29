@@ -102,7 +102,7 @@ public final class PageStore {
         PageRecord created = new PageRecord(id, key);
         created.title = "";
         created.lastModifiedRfc1123 = "";
-        created.sizeChars = 0;
+        created.sizeBytes = 0;
         created.isHtml = false;
         created.outLinks = new LinkedHashSet<>();
         created.parentPageIds = new LinkedHashSet<>();

@@ -23,6 +23,15 @@ Tasks assignment:
 - indexer: sean
 - test program + data retrieval: ethan
 
-Instructions: 
+Instructions:
 
-WIP
+```bash
+cd spider
+./mvnw -q clean package
+java -jar target/spider-1.0.0.jar \
+  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
+  --max-pages 30 \
+  --out out
+```
+
+Outputs are written to `spider/out/`: raw HTML in `pages/page<pageId>.html` and crawl state in `state.json`.

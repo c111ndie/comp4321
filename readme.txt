@@ -13,15 +13,10 @@ macOS note:
   - export PATH="$JAVA_HOME/bin:$PATH"
 
 Build (uses Maven Wrapper; Maven does NOT need to be installed):
-Option A (from repo root):
-1) ./mvnw -q clean package
-
-Option B (from spider folder):
 1) cd spider
 2) ./mvnw -q clean package
 
-Run:
-cd spider
+Run (from the spider folder):
 java -jar target/spider-1.0.0.jar \
   --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
   --max-pages 30 \
