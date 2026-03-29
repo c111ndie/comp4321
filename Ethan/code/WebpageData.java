@@ -1,5 +1,3 @@
-import com.comp4321.spider.store.PageRecord;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,17 +36,6 @@ public class WebpageData
         this.freq = freq;
         this.childLinks = childLinks;
         checkInitialized();
-    }
-    public WebpageData(PageRecord page) {
-        this.title = page.title;
-        this.url = page.url;
-        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
-        this.sizeChars = String.valueOf(page.sizeBytes);
-        this.childLinks = page.outLinks.toArray(new String[0]);
-        // Keywords and frequencies are not available in PageRecord, so set to null
-        this.keywords = null; 
-        this.freq = null;
-        this.initialized = false;
     }
     public void loadWebpageData(String pageTitle, String url, String lastModDate, String sizeOfPage,
                        String[] keywords, int[] freq, String[] childLinks) {

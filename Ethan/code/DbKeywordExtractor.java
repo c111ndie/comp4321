@@ -17,6 +17,7 @@ public class DbKeywordExtractor {
     private RecordManager recman;
     private HTree titleIndex;
     private HTree bodyIndex;
+    private HTree wordIdToWord;
 
     /**
      * Initialize extractor with path to JDBM database.
@@ -28,15 +29,28 @@ public class DbKeywordExtractor {
         recman = RecordManagerFactory.createRecordManager(dbName);
         
         // Load or create indices
-        long titleRecID = recman.getNamedObject("titleIndex");
-        long bodyRecID = recman.getNamedObject("bodyIndex");
+        long titleRecID = recman.getNamedObject("titleInvertedIndex");
+        long bodyRecID = recman.getNamedObject("bodyInvertedIndex");
+        long wordIdToWordRecID = recman.getNamedObject("wordIdToWord");
         
-        if (titleRecID == 0 || bodyRecID == 0) {
+        System.out.println("titleRecID: " + titleRecID);
+        System.out.println("bodyRecID: " + bodyRecID);
+        System.out.println("wordIdToWordRecID: " + wordIdToWordRecID);
+        
+        // Debug other names
+        System.out.println("urlToPageId: " + recman.getNamedObject("urlToPageId"));
+        System.out.println("pageIdToUrl: " + recman.getNamedObject("pageIdToUrl"));
+        System.out.println("wordToWordId: " + recman.getNamedObject("wordToWordId"));
+        System.out.println("forwardIndex: " + recman.getNamedObject("forwardIndex"));
+        
+        if (titleRecID == 0 || bodyRecID == 0 || wordIdToWordRecID == 0) {
+            System.out.println("Missing indices. title: " + titleRecID + ", body: " + bodyRecID + ", wordIdToWord: " + wordIdToWordRecID);
             throw new IOException("Database does not contain valid indices. Make sure it was created by Indexer.");
         }
         
         titleIndex = HTree.load(recman, titleRecID);
         bodyIndex = HTree.load(recman, bodyRecID);
+        wordIdToWord = HTree.load(recman, wordIdToWordRecID);
     }
 
     /**
@@ -75,12 +89,13 @@ public class DbKeywordExtractor {
     private void extractFromIndex(HTree index, int pageId, List<String> keywords, 
                                    List<Integer> frequencies, double weight) throws IOException {
         FastIterator iterator = index.keys();
-        String term;
+        Integer wordId;
         
-        while ((term = (String) iterator.next()) != null) {
-            PostingList postingList = (PostingList) index.get(term);
+        while ((wordId = (Integer) iterator.next()) != null) {
+            PostingList postingList = (PostingList) index.get(wordId);
+            String term = (String) wordIdToWord.get(wordId);
             
-            if (postingList != null) {
+            if (postingList != null && term != null) {
                 // Check if this page appears in the posting list
                 Set<Integer> pageIds = postingList.getPageIds();
                 if (pageIds.contains(pageId)) {
