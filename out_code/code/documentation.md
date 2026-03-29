@@ -47,4 +47,106 @@ This class is assigned to a txt path, receives a content and write them to the f
 
 # dbGenerator.java
 
-WIP
+Complete database generator for indexing and persisting crawled pages.
+
+## Overview
+
+The `dbGenerator` class integrates page crawling with full-text indexing to output indexed pages to a JDBM database file. It:
+- Reads crawled pages from PageStore
+- Processes and stems page content using StopStem
+- Builds separate inverted indices for titles and body text
+- Persists the complete index to a database file
+
+## Key Features
+
+1. **Separate Title/Body Indexing**: Pages are indexed with separate title and body indices, allowing weighted search results
+2. **Stopword Filtering**: Removes common words during indexing for efficiency
+3. **Porter Stemming**: Reduces terms to their root form for better matching
+4. **JDBM Persistence**: All indexed data is stored in a JDBM database for efficient retrieval
+5. **Summary Export**: Generates detailed summary of indexed pages
+
+## Constructor
+
+```java
+public dbGenerator(Path pageStorePath, Path indexDbPath, Path stopwordsPath) throws IOException
+```
+
+- `pageStorePath`: Directory containing crawled pages (PageStore)
+- `indexDbPath`: Directory where index database will be saved
+- `stopwordsPath`: Path to stopwords file
+
+## Main Methods
+
+### Indexing
+- `int indexAllPages()`: Index all pages in the store, returns count
+- `boolean indexPageById(int pageId)`: Index a specific page by ID
+- `boolean indexPage(PageRecord record)`: Index a single page record
+
+### Searching
+- `PostingList searchTitleTerm(String term)`: Find pages with term in title
+- `PostingList searchBodyTerm(String term)`: Find pages with term in body
+
+### Management
+- `void close()`: Close database and persist all changes
+- `void exportIndexSummary(Path outputPath)`: Write index summary to file
+- `int getIndexedPageCount()`: Get total pages indexed
+- `Set<Integer> getIndexedPageIds()`: Get all indexed page IDs
+
+### Access to Core Components
+- `Indexer getIndexer()`: Get underlying Indexer instance
+- `PageStore getPageStore()`: Get underlying PageStore instance
+
+## Usage Example
+
+```java
+// Initialize with paths
+dbGenerator generator = new dbGenerator(
+    Path.of("./pages"),           // PageStore directory
+    Path.of("./indexDB"),         // Index database path
+    Path.of("./stopwords.txt")    // Stopwords file
+);
+
+// Index all pages
+int numPages = generator.indexAllPages();
+
+// Export summary
+generator.exportIndexSummary(Path.of("index_summary.txt"));
+
+// Search for a term
+PostingList results = generator.searchTitleTerm("information");
+
+// Close and save
+generator.close();
+```
+
+## Integration with Other Modules
+
+This class integrates these external components (from COMP4321 and spider):
+- **Indexer**: Handles tokenization and indexing (from COMP4321)
+- **InvertedIndex**: JDBM-backed index storage (from COMP4321)
+- **PostingList**: Term posting lists (from COMP4321)
+- **StopStem**: Stopword filtering and stemming (from COMP4321)
+- **PageStore**: Crawled page storage (from spider)
+- **PageRecord**: Page metadata (from spider)
+
+## Database Output
+
+The index database file contains:
+- **titleIndex**: Inverted index of page titles with term positions
+- **bodyIndex**: Inverted index of page bodies with term positions
+- Document frequency and position information for ranking
+
+## Execution Flow
+
+1. Create `dbGenerator` instance with paths
+2. Call `indexAllPages()` to process all crawled pages
+3. Each page's title and body are tokenized, stemmed, and stopwords removed
+4. Terms are stored in separate indices with document IDs and positions
+5. Index is persisted to database file via JDBM
+6. Export summary for verification
+7. Call `close()` to finalize and commit changes
+
+## Output Files
+
+- `indexed_pages.db` (or specified path): JDBM database containing the inverted indices
+- `index_summary.txt`: Human-readable summary of indexed pages
