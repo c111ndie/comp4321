@@ -4,6 +4,7 @@ This module implements the **spider/crawler** (BFS crawl) and **JDBM indexer** f
 
 ## Requirements
 
+- Preferably MacOS
 - Java 11+
 - No system Maven required (uses Maven Wrapper)
 

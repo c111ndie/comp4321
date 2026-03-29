@@ -1,6 +1,7 @@
 More readable version in COMP4321/README.md
 
 Requirements
+- Preferably MacOS
 - Java 11+
 - No system Maven required (uses Maven Wrapper)
 
