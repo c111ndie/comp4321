@@ -58,10 +58,10 @@ mvnw.cmd -q clean package
 ### 0. Compile (The code has already been compiled)
 
 
-### 1. Crawl, Index, Generate results (macOS / Linux / Git Bash / Windows)
+### 1. Crawl, Index, Generate results (macOS / Linux / Git Bash)
 
 ```bash
-cd /workspaces/comp4321/spider
+cd spider
 ./mvnw clean package -DskipTests
 
 java -jar target/spider-1.0.0.jar \
@@ -71,13 +71,16 @@ java -jar target/spider-1.0.0.jar \
   --db-name indexDB \
   --stopwords stopwords.txt
 
-java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
+cd ..
+mkdir -p txt_builder/build
+javac -cp spider/target/spider-1.0.0.jar -d txt_builder/build txt_builder/*.java
+java -cp "spider/target/spider-1.0.0.jar:txt_builder/build" SearchResultsExporter spider/crawl-output spider/indexDB spider/crawl-output/spider_result.txt
 ```
 
 **Parameters:**
-- `crawl-output`: Path to the PageStore (contains `state.json` and `pages/`)
-- `indexDB`: Path to the JDBM database created by the spider
-- `crawl-output/spider_result.txt`: Output filename for the results
+- `spider/crawl-output`: Path to the PageStore (contains `state.json` and `pages/`)
+- `spider/indexDB`: Path to the JDBM database created by the spider
+- `spider/crawl-output/spider_result.txt`: Output filename for the results
 
 **Output:**
 - Reads all crawled pages from PageStore
@@ -92,7 +95,7 @@ java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-ou
 
 **View the results:**
 ```bash
-cat crawl-output/spider_result.txt
+cat spider/crawl-output/spider_result.txt
 ```
 
 ### Output Format
@@ -116,7 +119,15 @@ Each page entry contains:
 ### Windows — Command Prompt or PowerShell
 
 ```cmd
+cd spider
+mvnw.cmd clean package -DskipTests
+
 java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out crawl-output --db-name indexDB --stopwords stopwords.txt
+
+cd ..
+if not exist txt_builder\build mkdir txt_builder\build
+javac -cp spider\target\spider-1.0.0.jar -d txt_builder\build txt_builder\*.java
+java -cp "spider\target\spider-1.0.0.jar;txt_builder\build" SearchResultsExporter spider\crawl-output spider\indexDB spider\crawl-output\spider_result.txt
 ```
 
 ### Options
