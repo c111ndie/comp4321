@@ -8,7 +8,11 @@ import java.io.IOException;
 
 /**
  * This class accepts webpage data and packages them into one object
+ *
+ * @author Ethan
+ * @version 27/3
  */
+
 
 public class WebpageData
 {
@@ -59,28 +63,6 @@ public class WebpageData
         this.freq = null;
         this.initialized = false;
     }
-    public WebpageData(PageRecord page, String[] keywords, String[] freq) {
-        this.title = page.title;
-        this.url = page.url;
-        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
-        this.sizeChars = String.valueOf(page.sizeChars);
-        this.childLinks = page.outLinks.toArray(new String[0]);
-        // Keywords and frequencies are not available in PageRecord, so set to null
-        this.keywords = keywords; 
-        this.freq = freq;
-        this.initialized = true;
-    }
-    public WebpageData(PageRecord page, String[] keywords, int[] freq) {
-        this.title = page.title;
-        this.url = page.url;
-        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
-        this.sizeChars = String.valueOf(page.sizeChars);
-        this.childLinks = page.outLinks.toArray(new String[0]);
-        // Keywords and frequencies are not available in PageRecord, so set to null
-        this.keywords = keywords; 
-        this.freq = freq;
-        this.initialized = true;
-    }
     public void loadWebpageData(String pageTitle, String url, String lastModDate, String sizeOfPage,
                        String[] keywords, int[] freq, String[] childLinks) {
         this.title = pageTitle;
@@ -105,7 +87,7 @@ public class WebpageData
     }
 
     public boolean checkInitialized() {
-        if (this.title == null || this.url == null || this.lastModDate == null || this.sizeChars == null) {
+        if (this.title == null || this.url == null || this.lastModDate == null || this.sizeOfPage == null) {
             this.initialized = false;
         } else {
             this.initialized = true;
@@ -119,37 +101,37 @@ public class WebpageData
             System.err.println("WebpageData not initialized.");
             return;
         }
-        System.out.println("Page Title: " + this.title);
-        System.out.println("URL: " + this.url);
-        System.out.println("Last Modified: " + this.lastModDate);
-        System.out.println("Size of Page: " + this.sizeChars);
-        if (this.keywords != null) {
-            System.out.println("Keywords: " + String.join(", ", this.keywords));
+        System.out.println("Page Title: " + pageTitle);
+        System.out.println("URL: " + url);
+        System.out.println("Last Modified: " + lastModDate);
+        System.out.println("Size of Page: " + sizeOfPage);
+        if (keywords != null) {
+            System.out.println("Keywords: " + String.join(", ", keywords));
         }
-        if (this.freq != null) {
+        if (freq != null) {
             System.out.print("Frequencies: ");
-            for (Object f : this.freq) {
+            for (int f : freq) {
                 System.out.print(f + " ");
             }
             System.out.println();
         }
-        if (this.childLinks != null) {
-            System.out.println("Child Links: " + String.join(", ", this.childLinks));
+        if (childLinks != null) {
+            System.out.println("Child Links: " + String.join(", ", childLinks));
         }
     }
 }
 
 /**
  * This class uses the WebpageData class to write content on the txt file.
- * Optimized with session-based buffering for improved I/O performance.
+ *
+ * @author Ethan
+ * @version 27/3
  */
 public class Printer
 {
     private String output; // Output txt file name
     public boolean initialized;
-    private int entryCount; // Track number of entries written
-    private BufferedWriter sessionWriter; // Reusable writer for batch operations
-    private boolean inSession; // Flag indicating if session is active
+    private boolean empty;
     
     /**
      * Constructor for objects of class Printer
@@ -158,9 +140,7 @@ public class Printer
     {
         this.output = output_txt_file_name;
         this.initialized = true;
-        this.entryCount = 0;
-        this.sessionWriter = null;
-        this.inSession = false;
+        this.empty = false;
     }
     
     /**
@@ -171,48 +151,16 @@ public class Printer
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(this.output))) 
         {} catch (IOException e) {e.printStackTrace();}
         this.initialized = true;
-        this.entryCount = 0;
-    }
-
-    /**
-     * Start a session for batch writing (significantly improves performance for multiple entries).
-     * Must call endSession() when done writing.
-     * 
-     * @throws IOException if file cannot be opened
-     */
-    public void startSession() throws IOException {
-        if (this.inSession) {
-            System.err.println("Session already active. Call endSession() first.");
-            return;
-        }
-        this.sessionWriter = new BufferedWriter(new FileWriter(this.output, true));
-        this.inSession = true;
-    }
-
-    /**
-     * End the current session and flush all buffered data to disk.
-     * 
-     * @throws IOException if file cannot be flushed or closed
-     */
-    public void endSession() throws IOException {
-        if (!this.inSession || this.sessionWriter == null) {
-            System.err.println("No active session to end.");
-            return;
-        }
-        this.sessionWriter.flush();
-        this.sessionWriter.close();
-        this.sessionWriter = null;
-        this.inSession = false;
+        this.empty = true;
     }
     /**
-     * Adds webpage content (single-write mode or batch mode)
-     * For best performance with multiple entries, use startSession/endSession pattern.
+     * Adds webpage content
      */
     public void appendWebpageData(WebpageData data)
     {
         // Sanity check
         if (!this.initialized) {
-            System.err.println("Printer not initialized. Did you do some forbidden casting?");
+            System.err.println("Printer not initialized. Did you do some forbiddened casting?");
             return;
         }
         if (!data.initialized) {
@@ -223,16 +171,14 @@ public class Printer
             }
         }
         
-        try {
-            // Use session writer if available, otherwise create temporary writer
-            BufferedWriter bw = (this.inSession && this.sessionWriter != null) 
-                              ? this.sessionWriter
-                              : new BufferedWriter(new FileWriter(this.output, true));
-            
-            // Write separator between entries (after first entry)
-            if (this.entryCount > 0) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("buffered_example.txt", true))) 
+        {
+            // Separates previous entries with new line
+            if (!this.empty) // Is this not the first entry?
+            {   
+                // Add separator if not first entry
                 bw.newLine();
-                bw.write("========================================================================");
+                bw.write("========================================================================"); 
                 bw.newLine();
             }
             
@@ -244,8 +190,8 @@ public class Printer
             bw.write(data.url);
             bw.newLine();
     
-            // Last modification date and size (optimized string formatting)
-            bw.write(String.format("%s, %s bytes", data.lastModDate, data.sizeChars));
+            // Last modification date and size
+            bw.write(data.lastModDate + ", " + data.sizeChars);
             bw.newLine();
 
             // Keywords with frequencies
@@ -270,127 +216,76 @@ public class Printer
                     bw.newLine();
                 }
             }
-
-            // Only close if not in session (single-write mode)
-            if (!this.inSession) {
-                bw.close();
-            }
-            
-            this.entryCount++;
         } 
-        catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
-            e.printStackTrace();
-        }
+        catch (IOException e) {e.printStackTrace();}
+        this.empty = false;
     }
 
-    /**
-     * Adds webpage content from a PageRecord object (single-write or batch mode)
-     */
-    public void appendWebpageData(PageRecord record)
-    {
-        if (!this.initialized) {
-            System.err.println("Printer not initialized.");
-            return;
-        }
-        if (record == null || record.title == null || record.title.isEmpty()) {
-            System.err.println("Invalid PageRecord provided.");
-            return;
-        }
-        
-        try {
-            // Use session writer if available, otherwise create temporary writer
-            BufferedWriter bw = (this.inSession && this.sessionWriter != null)
-                              ? this.sessionWriter
-                              : new BufferedWriter(new FileWriter(this.output, true));
-            
-            // Write separator between entries
-            if (this.entryCount > 0) {
-                bw.newLine();
-                bw.write("========================================================================");
-                bw.newLine();
+
+
+ /***
+  * As a reminder
+  * 
+  * public final class PageRecord {
+    public int pageId;
+    public String url;
+    public String title;
+    public String lastModifiedRfc1123;
+    public boolean lastModifiedFromHeader;
+    public long sizeChars;
+    public Set<String> outLinks = new LinkedHashSet<>();
+    public Set<Integer> parentPageIds = new LinkedHashSet<>();
+    public boolean isHtml;
+
+    public PageRecord() {}
+
+    public PageRecord(int pageId, String url) {
+        this.pageId = pageId;
+        this.url = url;
+    }
+}
+
+
+Old code for ref
+    public void write(Path outPath, Map<Integer, PageRecord> pagesByIdAscending) throws IOException {
+        List<Integer> ids = new ArrayList<>(pagesByIdAscending.keySet());
+        ids.sort(Comparator.naturalOrder());
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            PageRecord page = pagesByIdAscending.get(ids.get(i));
+            if (page == null) {
+                continue;
             }
-            
-            bw.write(record.title);
-            bw.newLine();
-            bw.write(record.url);
-            bw.newLine();
-            
-            String lastMod = (record.lastModifiedRfc1123 != null && !record.lastModifiedRfc1123.isBlank())
-                           ? record.lastModifiedRfc1123 : "N/A";
-            bw.write(String.format("%s, %d bytes", lastMod, record.sizeChars));
-            bw.newLine();
-            
-            if (record.outLinks != null && !record.outLinks.isEmpty()) {
-                for (String link : record.outLinks) {
-                    bw.write(link);
-                    bw.newLine();
+            sb.append(safe(page.title)).append('\n');
+            sb.append(safe(page.url)).append('\n');
+
+            String lm = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
+            sb.append(lm).append(",").append(page.sizeChars).append('\n');
+
+            sb.append('\n');
+
+            Set<String> outLinks = page.outLinks;
+            if (outLinks != null) {
+                int j = 0;
+                for (String link : outLinks) {
+                    sb.append(link).append('\n');
+                    if (++j >= 10) {
+                        break;
+                    }
                 }
             }
 
-            // Only close if not in session
-            if (!this.inSession) {
-                bw.close();
+            if (i != ids.size() - 1) {
+                sb.append(SEPARATOR).append('\n');
             }
+        }
 
-            this.entryCount++;
-        }
-        catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+        Files.createDirectories(outPath.getParent());
+        Files.writeString(outPath, sb.toString(), StandardCharsets.UTF_8);
 
-    /**
-     * Batch append multiple WebpageData objects efficiently using session buffering.
-     * Much faster than calling appendWebpageData() in a loop.
-     * 
-     * @param dataList List of WebpageData objects to write
-     * @throws IOException if batch operation fails
-     */
-    public void appendWebpageDataBatch(java.util.List<WebpageData> dataList) throws IOException {
-        if (dataList == null || dataList.isEmpty()) {
-            return;
-        }
-        
-        this.startSession();
-        for (WebpageData data : dataList) {
-            this.appendWebpageData(data);
-        }
-        this.endSession();
-    }
 
-    /**
-     * Batch append multiple PageRecord objects efficiently using session buffering.
-     * Much faster than calling appendWebpageData(PageRecord) in a loop.
-     * 
-     * @param recordList List of PageRecord objects to write
-     * @throws IOException if batch operation fails
-     */
-    public void appendPageRecordBatch(java.util.List<PageRecord> recordList) throws IOException {
-        if (recordList == null || recordList.isEmpty()) {
-            return;
-        }
-        
-        this.startSession();
-        for (PageRecord record : recordList) {
-            this.appendWebpageData(record);
-        }
-        this.endSession();
-    }
+  * 
+  *  */   
+}
 
-    /**
-     * Get the total number of entries written in this session.
-     * 
-     * @return Number of entries written
-     */
-    public int getEntryCount() {
-        return this.entryCount;
-    }
-
-    /**
-     * Reset entry counter (typically after calling initTxtFile()).
-     */
-    public void resetEntryCount() {
-        this.entryCount = 0;
-    }
