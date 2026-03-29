@@ -31,32 +31,29 @@ java -version
 
 ## Build
 
-### macOS / Linux
+All commands below must be run from **inside the `spider/` directory** (i.e. `cd spider` first if you cloned the repo and are at the root).
 
-Run from the `spider/` directory:
+### macOS / Linux / Git Bash (Windows)
 
 ```bash
-cd spider
 ./mvnw -q clean package
 ```
 
-### Windows (Command Prompt)
+### Windows — Command Prompt
 
 ```cmd
-cd spider
 mvnw.cmd -q clean package
 ```
 
-### Windows (PowerShell)
+### Windows — PowerShell
 
 ```powershell
-cd spider
 .\mvnw.cmd -q clean package
 ```
 
 ## Run
 
-### macOS / Linux
+### macOS / Linux / Git Bash (Windows)
 
 ```bash
 java -jar target/spider-1.0.0.jar \
@@ -65,7 +62,7 @@ java -jar target/spider-1.0.0.jar \
   --out out
 ```
 
-### Windows (Command Prompt or PowerShell)
+### Windows — Command Prompt or PowerShell
 
 ```cmd
 java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out out
