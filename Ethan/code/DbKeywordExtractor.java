@@ -33,18 +33,7 @@ public class DbKeywordExtractor {
         long bodyRecID = recman.getNamedObject("bodyInvertedIndex");
         long wordIdToWordRecID = recman.getNamedObject("wordIdToWord");
         
-        System.out.println("titleRecID: " + titleRecID);
-        System.out.println("bodyRecID: " + bodyRecID);
-        System.out.println("wordIdToWordRecID: " + wordIdToWordRecID);
-        
-        // Debug other names
-        System.out.println("urlToPageId: " + recman.getNamedObject("urlToPageId"));
-        System.out.println("pageIdToUrl: " + recman.getNamedObject("pageIdToUrl"));
-        System.out.println("wordToWordId: " + recman.getNamedObject("wordToWordId"));
-        System.out.println("forwardIndex: " + recman.getNamedObject("forwardIndex"));
-        
         if (titleRecID == 0 || bodyRecID == 0 || wordIdToWordRecID == 0) {
-            System.out.println("Missing indices. title: " + titleRecID + ", body: " + bodyRecID + ", wordIdToWord: " + wordIdToWordRecID);
             throw new IOException("Database does not contain valid indices. Make sure it was created by Indexer.");
         }
         

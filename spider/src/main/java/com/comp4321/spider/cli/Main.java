@@ -48,33 +48,62 @@ public final class Main {
         System.out.println("Crawl complete. Indexed " + store.pageCount() + " pages. Starting JDBM indexing...");
 
         // --- Index into JDBM ---
-        JdbmIndexer indexer = new JdbmIndexer(dbName, stopwords);
-        for (PageRecord page : store.pagesByIdAscending().values()) {
-            if (!page.isHtml)
-                continue;
+        JdbmIndexer indexer = null;
+        try {
+            indexer = new JdbmIndexer(dbName, stopwords);
+            System.out.println("[DEBUG] JdbmIndexer initialized for: " + dbName);
 
-            String html = store.readHtml(page).orElse("");
-            String bodyText = extractBodyText(html);
+            int indexed = 0;
+            for (PageRecord page : store.pagesByIdAscending().values()) {
+                if (!page.isHtml)
+                    continue;
 
-            // Resolve parent URLs from parent pageIds
-            List<String> parentUrls = new ArrayList<>();
-            for (int parentId : page.parentPageIds) {
-                store.getByPageId(parentId).ifPresent(p -> parentUrls.add(p.url));
+                String html = store.readHtml(page).orElse("");
+                String bodyText = extractBodyText(html);
+
+                // Resolve parent URLs from parent pageIds
+                List<String> parentUrls = new ArrayList<>();
+                for (int parentId : page.parentPageIds) {
+                    store.getByPageId(parentId).ifPresent(p -> parentUrls.add(p.url));
+                }
+
+                List<String> childUrls = new ArrayList<>(page.outLinks);
+
+                try {
+                    indexer.indexPage(
+                            page.pageId,
+                            page.url,
+                            page.title != null ? page.title : "",
+                            bodyText,
+                            page.lastModifiedRfc1123,
+                            page.sizeBytes,
+                            childUrls,
+                            parentUrls);
+                    indexed++;
+                } catch (Exception e) {
+                    System.err.println("[ERROR] Failed to index page " + page.pageId + " (" + page.url + ")");
+                    e.printStackTrace();
+                }
             }
 
-            List<String> childUrls = new ArrayList<>(page.outLinks);
-
-            indexer.indexPage(
-                    page.pageId,
-                    page.url,
-                    page.title != null ? page.title : "",
-                    bodyText,
-                    page.lastModifiedRfc1123,
-                    page.sizeBytes,
-                    childUrls,
-                    parentUrls);
+            System.out.println("[DEBUG] Indexed " + indexed + " pages. Committing to database...");
+            indexer.commit();
+            System.out.println("[DEBUG] Commit successful. Closing indexer...");
+        } catch (Exception e) {
+            System.err.println("[ERROR] JDBM indexing failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (indexer != null) {
+                try {
+                    indexer.close();
+                    System.out.println("[DEBUG] JdbmIndexer closed successfully");
+                } catch (Exception e) {
+                    System.err.println("[ERROR] Failed to close JdbmIndexer: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
         }
-        indexer.close();
         System.out.println("JDBM indexing complete. Database: " + dbName);
     }
 

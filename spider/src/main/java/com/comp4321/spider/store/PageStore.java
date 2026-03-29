@@ -172,6 +172,7 @@ public final class PageStore {
     }
 
     public Map<Integer, PageRecord> pagesByIdAscending() {
+        normalizeRecords();  // Ensure no null records
         Map<Integer, PageRecord> out = new LinkedHashMap<>();
         state.pages.entrySet().stream()
                 .sorted(Comparator.comparingInt(Map.Entry::getKey))

@@ -50,6 +50,7 @@ public class JdbmIndexer {
 
     public JdbmIndexer(String dbName, String stopwordsPath) throws IOException {
         recman = RecordManagerFactory.createRecordManager(dbName);
+        
         urlToPageId = loadOrCreate("urlToPageId");
         pageIdToUrl = loadOrCreate("pageIdToUrl");
         wordToWordId = loadOrCreate("wordToWordId");
@@ -59,6 +60,7 @@ public class JdbmIndexer {
         forwardIndex = loadOrCreate("forwardIndex");
         pageMetadata = loadOrCreate("pageMetadata");
         counters = loadOrCreate("counters");
+        
         stopStem = new StopStem(stopwordsPath);
     }
 
@@ -204,10 +206,12 @@ public class JdbmIndexer {
 
     private HTree loadOrCreate(String name) throws IOException {
         long recid = recman.getNamedObject(name);
-        if (recid != 0)
+        if (recid != 0) {
             return HTree.load(recman, recid);
+        }
         HTree tree = HTree.createInstance(recman);
-        recman.setNamedObject(name, tree.getRecid());
+        long treeRecid = tree.getRecid();
+        recman.setNamedObject(name, treeRecid);
         return tree;
     }
 
