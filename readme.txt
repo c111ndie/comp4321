@@ -54,7 +54,7 @@ mkdir -p txt_builder/build
 javac -cp spider/target/spider-1.0.0.jar -d txt_builder/build txt_builder/*.java
 java -cp "spider/target/spider-1.0.0.jar:txt_builder/build" SearchResultsExporter spider/crawl-output spider/indexDB spider/crawl-output/spider_result.txt
 
-Windows Command Prompt / PowerShell:
+Windows Command Prompt:
 
 cd spider
 mvnw.cmd clean package -DskipTests
@@ -63,6 +63,23 @@ java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP43
 
 cd ..
 if not exist txt_builder\build mkdir txt_builder\build
+javac -cp spider\target\spider-1.0.0.jar -d txt_builder\build txt_builder\*.java
+java -cp "spider\target\spider-1.0.0.jar;txt_builder\build" SearchResultsExporter spider\crawl-output spider\indexDB spider\crawl-output\spider_result.txt
+
+Windows PowerShell (with line continuation using backticks):
+
+cd spider
+.\mvnw.cmd clean package -DskipTests
+
+java -jar target\spider-1.0.0.jar `
+  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm `
+  --max-pages 30 `
+  --out crawl-output `
+  --db-name indexDB `
+  --stopwords stopwords.txt
+
+cd ..
+if (-not (Test-Path txt_builder\build)) { New-Item -ItemType Directory -Path txt_builder\build | Out-Null }
 javac -cp spider\target\spider-1.0.0.jar -d txt_builder\build txt_builder\*.java
 java -cp "spider\target\spider-1.0.0.jar;txt_builder\build" SearchResultsExporter spider\crawl-output spider\indexDB spider\crawl-output\spider_result.txt
 
