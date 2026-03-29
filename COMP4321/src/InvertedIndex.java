@@ -42,6 +42,14 @@ public class InvertedIndex {
 		recman.commit();
 		recman.close();
 	}
+	
+	public PostingList getTitleTerm(String stem) throws IOException {
+    return (PostingList) titleIndex.get(stem);
+	}
+
+	public PostingList getBodyTerm(String stem) throws IOException {
+		return (PostingList) bodyIndex.get(stem);
+	}
 }
 
 /*class Posting implements Serializable
