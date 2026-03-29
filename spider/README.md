@@ -54,6 +54,10 @@ mvnw.cmd -q clean package
 
 ## Run: Crawl, Index, and Export Results
 
+
+### 0. Compile (The code has already been compiled)
+
+
 ### 1. Crawl and Index (macOS / Linux / Git Bash / Windows)
 
 ```bash
@@ -66,19 +70,7 @@ java -jar target/spider-1.0.0.jar \
   --out crawl-output \
   --db-name indexDB \
   --stopwords stopwords.txt
-```
 
-### 2. Compile Extraction/Export Tools
-
-```bash
-cd /workspaces/comp4321/txt_builder
-javac -cp "../spider/target/spider-1.0.0.jar" *.java
-```
-
-### 3. Export Results with Keywords
-
-```bash
-cd /workspaces/comp4321/spider
 java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
 ```
 
@@ -120,32 +112,6 @@ Each page entry contains:
 ...
 ```
 
-### Complete Pipeline Example
-
-```bash
-# 1. Build spider
-cd /workspaces/comp4321/spider
-./mvnw clean package -DskipTests
-
-# 2. Run spider (crawls and indexes)
-java -jar target/spider-1.0.0.jar \
-    --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-    --max-pages 30 \
-    --out crawl-output \
-    --db-name indexDB \
-    --stopwords stopwords.txt
-
-# 3. Compile extraction tools
-cd /workspaces/comp4321/txt_builder
-javac -cp "../spider/target/spider-1.0.0.jar" *.java
-
-# 4. Export results with keywords
-cd /workspaces/comp4321/spider
-java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
-
-# 5. View results
-cat crawl-output/spider_result.txt
-```
 
 ### Windows — Command Prompt or PowerShell
 
