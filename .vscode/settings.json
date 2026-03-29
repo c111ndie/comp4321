@@ -1,1 +1,9 @@
-{"java.project.sourcePaths":["COMP4321/src","spider/src/main/java"],"java.project.referencedLibraries":[],"java.configuration.checkProjectSettingsExclusions":false}
+{
+    "java.project.sourcePaths": [
+        "COMP4321/src",
+        "spider/src/main/java"
+    ],
+    "java.project.referencedLibraries": [],
+    "java.configuration.checkProjectSettingsExclusions": false,
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

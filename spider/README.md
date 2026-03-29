@@ -1,6 +1,6 @@
-# COMP4321 Spider (no indexer)
+# COMP4321 Spider + Indexer
 
-This repository implements the **spider/crawler** part (BFS crawl) of the COMP4321 project, **without** the indexer.
+This module implements the **spider/crawler** (BFS crawl) and **JDBM indexer** for the COMP4321 Phase 1 project.
 
 ## Requirements
 
@@ -59,21 +59,52 @@ mvnw.cmd -q clean package
 java -jar target/spider-1.0.0.jar \
   --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
   --max-pages 30 \
-  --out out
+  --out crawl-output \
+  --db-name indexDB \
+  --stopwords stopwords.txt
 ```
 
 ### Windows — Command Prompt or PowerShell
 
 ```cmd
-java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out out
+java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out crawl-output --db-name indexDB --stopwords stopwords.txt
 ```
 
-Outputs:
+### Options
 
-- `out/pages/page<pageId>.html` (raw HTML)
-- `out/state.json` (crawl state, includes `parentPageIds`)
+| Flag | Default | Description |
+|---|---|---|
+| `--seed` | _(required)_ | Starting URL |
+| `--max-pages` | _(required)_ | Max pages to fetch (BFS) |
+| `--out` | _(required)_ | Output directory for crawl state and raw HTML |
+| `--db-name` | `indexDB` | JDBM database name (`<name>.db` / `<name>.lg` created in working dir) |
+| `--stopwords` | `stopwords.txt` | Path to stopwords file (falls back to the bundled one in the JAR) |
+| `--delay-ms` | `0` | Politeness delay between requests (ms) |
+| `--user-agent` | `comp4321-spider/1.0` | HTTP User-Agent header |
+
+### Outputs
+
+- `crawl-output/pages/page<id>.html` — raw HTML of each fetched page
+- `crawl-output/state.json` — crawl state (URLs, titles, dates, parent/child links)
+- `indexDB.db` + `indexDB.lg` — JDBM database (submit these for Phase 1)
+
+### JDBM Database Schema
+
+| HTree | Key | Value | Purpose |
+|---|---|---|---|
+| `urlToPageId` | `String` URL | `Integer` pageId | URL → ID lookup |
+| `pageIdToUrl` | `Integer` pageId | `String` URL | ID → URL lookup |
+| `wordToWordId` | `String` stem | `Integer` wordId | Stem → word ID |
+| `wordIdToWord` | `Integer` wordId | `String` stem | Word ID → stem |
+| `bodyInvertedIndex` | `Integer` wordId | `PostingList` | Body inverted index (positions for phrase search) |
+| `titleInvertedIndex` | `Integer` wordId | `PostingList` | Title inverted index (positions for phrase search) |
+| `forwardIndex` | `Integer` pageId | `Map<wordId,freq>` | Forward index (body term frequencies for tf·idf) |
+| `pageMetadata` | `Integer` pageId | `PageMeta` | Title, URL, date, size, top keywords, child/parent URLs |
+| `counters` | `String` | `Integer` | Internal counters (`nextWordId`) |
 
 Notes:
 
-- Crawl strategy is BFS and restricted to the same host as the seed URL.
-- Link extraction parses `<a href>` tags from already-downloaded HTML using HTMLParser (no second HTTP request).
+- Crawl strategy is BFS, restricted to the same host as the seed URL.
+- Pages are re-fetched only if the server reports a newer `Last-Modified` date.
+- Stop words are removed and remaining words are stemmed with Porter's algorithm before indexing.
+- `PostingList` stores per-document token positions, enabling phrase search (e.g. `"hong kong"`).

@@ -28,14 +28,25 @@ import org.htmlparser.util.ParserException;
 public final class Spider {
     private final SpiderConfig config;
     private final HttpFetcher fetcher;
+    /** The PageStore from the most recent call to {@link #crawl()}. */
+    private PageStore lastStore;
 
     public Spider(SpiderConfig config) {
         this.config = config;
         this.fetcher = new HttpFetcher(Duration.ofSeconds(30), config.userAgent);
     }
 
+    /**
+     * Returns the PageStore used during the last {@link #crawl()} call, or
+     * {@code null} if crawl has not been called yet.
+     */
+    public PageStore getLastStore() {
+        return lastStore;
+    }
+
     public CrawlReport crawl() throws IOException, InterruptedException {
-        PageStore store = new PageStore(config.outDir);
+        this.lastStore = new PageStore(config.outDir);
+        PageStore store = this.lastStore;
         Frontier frontier = new Frontier();
 
         Optional<URI> seed = UrlCanonicalizer.canonicalize(config.seed);

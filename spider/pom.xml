@@ -28,6 +28,12 @@
             <version>${jackson.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>jdbm</groupId>
+            <artifactId>jdbm</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
