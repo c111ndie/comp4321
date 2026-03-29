@@ -27,15 +27,15 @@ public class InvertedIndex {
 	}
 
 	public void addWord(String stem, String docId, int position, boolean isTitle) throws IOException {
-    HTree tree = isTitle ? titleIndex : bodyIndex;
+		HTree tree = isTitle ? titleIndex : bodyIndex;
 
-    PostingList plist = (PostingList) tree.get(stem);
-    if (plist == null) plist = new PostingList();
+		PostingList plist = (PostingList) tree.get(stem);
+		if (plist == null) plist = new PostingList();
 
-    plist.addOccurrence(docId, position);
-    tree.put(stem, plist);
+		plist.addOccurrence(docId, position);
+		tree.put(stem, plist);
 
-    recman.commit();
+		recman.commit();
 	}
 
 	public void close() throws IOException {

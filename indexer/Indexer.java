@@ -47,7 +47,7 @@ public class Indexer {
             String dbName = "indexDB";
             Indexer idx = new Indexer(stopFile, dbName);
 
-            /*Replace with crawler*********
+            //Replace with crawler*********
             idx.indexDocument("doc1", "Introduction to Information Retrieval",
                     "This course covers indexing, vector space models, and ranking algorithms.");
             idx.indexDocument("doc2", "Porter Stemming Example",
@@ -55,7 +55,7 @@ public class Indexer {
 
             idx.close();
 
-            System.out.println("✅ Indexing complete!");*/
+            System.out.println("✅ Indexing complete!");
 
 
         } catch (IOException e) {
