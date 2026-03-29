@@ -1,4 +1,4 @@
-# COMP4321 Ethan Code
+# COMP4321 txt_builder
 
 ## Overview
 This folder contains code for processing crawled webpage data, extracting keywords and frequencies from indexed databases, and exporting results to text files.
