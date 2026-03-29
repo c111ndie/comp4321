@@ -1,4 +1,4 @@
-# COMP4321 Spider + Indexer
+# COMP4321 Spider + Indexer + Test Program
 
 This module implements the **spider/crawler** (BFS crawl) and **JDBM indexer** for the COMP4321 Phase 1 project.
 
@@ -58,7 +58,7 @@ mvnw.cmd -q clean package
 ### 0. Compile (The code has already been compiled)
 
 
-### 1. Crawl and Index (macOS / Linux / Git Bash / Windows)
+### 1. Crawl, Index, Generate results (macOS / Linux / Git Bash / Windows)
 
 ```bash
 cd /workspaces/comp4321/spider
