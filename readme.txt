@@ -5,6 +5,13 @@ This submission includes the spider/crawler implementation (no indexer, no test 
 Requirements:
 - Java 11+ (JDK)
 
+macOS note:
+- If `java -version` says "Unable to locate a Java Runtime", install a JDK and set JAVA_HOME.
+- Homebrew example:
+  - brew install openjdk@11
+  - export JAVA_HOME="/opt/homebrew/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home"
+  - export PATH="$JAVA_HOME/bin:$PATH"
+
 Build (uses Maven Wrapper; Maven does NOT need to be installed):
 Option A (from repo root):
 1) ./mvnw -q test
