@@ -36,9 +36,9 @@ Windows PowerShell:
 
 RUN: Crawl, Index, and Export Results
 
-macOS / Linux / Git Bash / Windows:
+macOS / Linux / Git Bash:
 
-cd /workspaces/comp4321/spider
+cd spider
 ./mvnw clean package -DskipTests
 
 java -jar target/spider-1.0.0.jar \
@@ -48,9 +48,24 @@ java -jar target/spider-1.0.0.jar \
   --db-name indexDB \
   --stopwords stopwords.txt
 
-java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
+cd ..
+mkdir -p txt_builder/build
+javac -cp spider/target/spider-1.0.0.jar -d txt_builder/build txt_builder/*.java
+java -cp "spider/target/spider-1.0.0.jar:txt_builder/build" SearchResultsExporter spider/crawl-output spider/indexDB spider/crawl-output/spider_result.txt
+
+Windows Command Prompt / PowerShell:
+
+cd spider
+mvnw.cmd clean package -DskipTests
+
+java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out crawl-output --db-name indexDB --stopwords stopwords.txt
+
+cd ..
+if not exist txt_builder\build mkdir txt_builder\build
+javac -cp spider\target\spider-1.0.0.jar -d txt_builder\build txt_builder\*.java
+java -cp "spider\target\spider-1.0.0.jar;txt_builder\build" SearchResultsExporter spider\crawl-output spider\indexDB spider\crawl-output\spider_result.txt
 
 Outputs
 - Reads all crawled pages from PageStore
-- Extracts keywords and frequencies from JDBM database for each page
-- Generates spider_result.txt with all pages and their keywords
+- Extracts keywords and frequencies from the JDBM database for each page
+- Generates spider_result.txt in spider/crawl-output/
