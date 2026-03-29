@@ -25,8 +25,8 @@ public class IndexDbInspector {
                 while ((k = iter.next()) != null) {
                     System.out.println("  " + k + " => " + tree.get(k));
                     shown++;
-                    if (shown >= 20) {
-                        System.out.println("  ... (20 entries max)");
+                    if (shown > 30) {
+                        System.out.println("  ... (30 entries max)");
                         break;
                     }
                 }
