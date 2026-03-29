@@ -56,7 +56,7 @@ public final class Spider {
         frontier.enqueue(seed.get());
 
         int processedThisRun = 0;
-        int uniqueCount = store.pageCount();
+        Set<Integer> coveredPageIds = new LinkedHashSet<>();
 
         while (!frontier.isEmpty()) {
             URI url = frontier.dequeue().orElse(null);
@@ -68,7 +68,9 @@ public final class Spider {
             }
 
             Optional<PageRecord> existing = store.getByUrl(url);
-            if (existing.isEmpty() && uniqueCount >= config.maxPages) {
+            // Once 30 BFS slots are filled, skip every further URL (new or existing).
+            // Existing pages not covered this run will be evicted as "31st page" entries.
+            if (coveredPageIds.size() >= config.maxPages) {
                 continue;
             }
 
@@ -79,11 +81,14 @@ public final class Spider {
             try {
                 result = fetcher.fetch(url, hints);
             } catch (IOException e) {
+                // Retain existing pages on transient network errors so they are not evicted.
+                existing.ifPresent(r -> coveredPageIds.add(r.pageId));
                 continue;
             }
 
             if (result.isNotModified()) {
                 existing.ifPresent(r -> {
+                    coveredPageIds.add(r.pageId);
                     if (r.outLinks == null) {
                         return;
                     }
@@ -105,13 +110,8 @@ public final class Spider {
                 continue;
             }
 
-            PageRecord record = existing.orElseGet(() -> {
-                PageRecord created = store.getOrCreate(url);
-                return created;
-            });
-            if (existing.isEmpty()) {
-                uniqueCount++;
-            }
+            PageRecord record = existing.orElseGet(() -> store.getOrCreate(url));
+            coveredPageIds.add(record.pageId);
 
             boolean isHtml = isHtmlContentType(result.contentType);
             record.isHtml = isHtml;
@@ -166,6 +166,18 @@ public final class Spider {
             System.err.println(
                     "Spider warning: no pages were saved. Check that the seed URL is reachable and returns HTTP 2xx HTML.");
         }
+
+        // Evict pages that were pushed beyond BFS position 30 (the "remove 31st page" rule).
+        // Any DB page not confirmed in coveredPageIds this run was displaced by a newly
+        // inserted page appearing earlier in BFS order.
+        if (!coveredPageIds.isEmpty()) {
+            Set<Integer> idsToRemove = new LinkedHashSet<>(store.pagesByIdAscending().keySet());
+            idsToRemove.removeAll(coveredPageIds);
+            for (Integer pageId : idsToRemove) {
+                store.removePage(pageId);
+            }
+        }
+
         store.recomputeParentLinks();
         store.checkpoint();
         return new CrawlReport(processedThisRun, frontier.seenCount());

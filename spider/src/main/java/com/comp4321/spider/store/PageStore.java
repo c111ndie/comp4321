@@ -183,6 +183,23 @@ public final class PageStore {
         return state.pages.size();
     }
 
+    /**
+     * Removes a single page from both the pages map and the URL→ID mapping,
+     * and deletes its cached HTML file. Used to evict the "31st page" when a
+     * newly discovered page displaces an existing one in BFS order.
+     */
+    public void removePage(int pageId) {
+        PageRecord r = state.pages.remove(pageId);
+        if (r != null) {
+            state.urlToPageId.remove(r.url);
+            try {
+                Files.deleteIfExists(htmlPath(pageId));
+            } catch (IOException ignored) {
+                // best-effort HTML cache cleanup
+            }
+        }
+    }
+
     public Optional<Instant> lastModifiedInstant(PageRecord record) {
         if (record == null) {
             return Optional.empty();
