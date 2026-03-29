@@ -26,16 +26,17 @@ public class InvertedIndex {
 		if (bodyRecID == 0) recman.setNamedObject("bodyIndex", bodyIndex.getRecid());
 	}
 
-	public void addWord(String stem, String docId, boolean isTitle) throws IOException {
-		HTree tree = isTitle ? titleIndex : bodyIndex;
-		PostingList list = (PostingList) tree.get(stem);
+	public void addWord(String stem, String docId, int position, boolean isTitle) throws IOException {
+    HTree tree = isTitle ? titleIndex : bodyIndex;
 
-		if (list == null) list = new PostingList();
-		list.addOccurrence(docId);
+    PostingList plist = (PostingList) tree.get(stem);
+    if (plist == null) plist = new PostingList();
 
-		tree.put(stem, list);
-		recman.commit();
-	}
+    plist.addOccurrence(docId, position);
+    tree.put(stem, plist);
+
+    recman.commit();
+}
 
 	public void close() throws IOException {
 		recman.commit();
