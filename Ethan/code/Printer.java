@@ -54,10 +54,16 @@ public class Printer
         }
     }
     /**
-     * Adds webpage content
+     * Adds webpage content with all keywords and child links
      */
-    public void appendWebpageData(WebpageData data, int maxKeywords = 10, int maxChildLinks = 10)
-    {
+    public void appendWebpageData(WebpageData data) {
+        appendWebpageData(data, 10, 10);
+    }
+    
+    /**
+     * Adds webpage content with limited keywords and child links
+     */
+    public void appendWebpageData(WebpageData data, int maxKeywords, int maxChildLinks) {
         // Sanity check
         if (!this.initialized) {
             System.err.println("Printer not initialized. Did you do some forbiddened casting?");
@@ -115,14 +121,14 @@ public class Printer
 
             // Child links
             if (data.childLinks != null) {
+                int linkCount = 0;
                 for (String link : data.childLinks) {
-                    if (maxChildLinks > 0 && link.equals(data.childLinks[maxChildLinks - 1])) {
-                        // bw.write("... (" + data.childLinks.length + " total)");
-                        bw.newLine();
+                    if (linkCount >= maxChildLinks) {
                         break;
                     }
                     bw.write(link);
                     bw.newLine();
+                    linkCount++;
                 }
             }
             
