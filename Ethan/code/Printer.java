@@ -1,3 +1,5 @@
+import java.io.*;
+
 /**
  * This class uses the WebpageData class to write content on the txt file.
  *
@@ -9,6 +11,7 @@ public class Printer
     private String output; // Output txt file name
     public boolean initialized;
     private boolean empty;
+    private BufferedWriter sessionWriter; // For session-based buffering
     
     /**
      * Constructor for objects of class Printer
@@ -18,6 +21,7 @@ public class Printer
         this.output = output_txt_file_name;
         this.initialized = true;
         this.empty = false;
+        this.sessionWriter = null;
     }
     
     /**
@@ -29,6 +33,25 @@ public class Printer
         {} catch (IOException e) {e.printStackTrace();}
         this.initialized = true;
         this.empty = true;
+    }
+    
+    /**
+     * Start a session for batch writing to improve I/O efficiency.
+     */
+    public void startSession() throws IOException {
+        if (sessionWriter == null) {
+            sessionWriter = new BufferedWriter(new FileWriter(this.output, true));
+        }
+    }
+    
+    /**
+     * End the session and close the writer.
+     */
+    public void endSession() throws IOException {
+        if (sessionWriter != null) {
+            sessionWriter.close();
+            sessionWriter = null;
+        }
     }
     /**
      * Adds webpage content
@@ -48,8 +71,9 @@ public class Printer
             }
         }
         
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("buffered_example.txt", true))) 
-        {
+        try {
+            BufferedWriter bw = (sessionWriter != null) ? sessionWriter : new BufferedWriter(new FileWriter(this.output, true));
+            
             // Separates previous entries with new line
             if (!this.empty) // Is this not the first entry?
             {   
@@ -92,6 +116,10 @@ public class Printer
                     bw.write(link);
                     bw.newLine();
                 }
+            }
+            
+            if (sessionWriter == null) {
+                bw.close();
             }
         } 
         catch (IOException e) {e.printStackTrace();}

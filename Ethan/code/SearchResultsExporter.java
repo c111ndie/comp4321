@@ -3,6 +3,7 @@ import com.comp4321.spider.store.PageStore;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.Arrays;
 
 /**
  * Integrates DbKeywordExtractor with txtGenerator Printer.
@@ -78,14 +79,15 @@ public class SearchResultsExporter {
             extractor.extractKeywordsForPage(record.pageId);
 
         // Create WebpageData with keywords and frequencies
+        int[] freqArray = Arrays.stream(kwResult.frequencies).mapToInt(Integer::intValue).toArray();
         WebpageData data = new WebpageData(
             record.title,
             record.url,
             (record.lastModifiedRfc1123 == null || record.lastModifiedRfc1123.isBlank()) 
                 ? "N/A" : record.lastModifiedRfc1123,
-            String.valueOf(record.sizeChars),
+            String.valueOf(record.sizeBytes),
             kwResult.keywords,
-            kwResult.frequencies,
+            freqArray,
             record.outLinks.toArray(new String[0])
         );
 

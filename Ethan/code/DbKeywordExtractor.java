@@ -3,6 +3,7 @@ import java.util.*;
 import jdbm.*;
 import jdbm.htree.HTree;
 import jdbm.helper.FastIterator;
+import com.comp4321.spider.indexer.PostingList;
 
 /**
  * Extracts keywords and their frequencies from the JDBM index database.
@@ -46,15 +47,14 @@ public class DbKeywordExtractor {
      * @throws IOException if database read fails
      */
     public KeywordFrequencyResult extractKeywordsForPage(int pageId) throws IOException {
-        String docId = String.valueOf(pageId);
         List<String> keywords = new ArrayList<>();
         List<Integer> frequencies = new ArrayList<>();
         
         // Extract from title index (higher weight)
-        extractFromIndex(titleIndex, docId, keywords, frequencies, 2.0); // 2x weight for title
+        extractFromIndex(titleIndex, pageId, keywords, frequencies, 2.0); // 2x weight for title
         
         // Extract from body index
-        extractFromIndex(bodyIndex, docId, keywords, frequencies, 1.0);
+        extractFromIndex(bodyIndex, pageId, keywords, frequencies, 1.0);
         
         return new KeywordFrequencyResult(
             keywords.toArray(new String[0]),
@@ -66,13 +66,13 @@ public class DbKeywordExtractor {
      * Extract keywords from a specific index (title or body).
      * 
      * @param index The HTree index to search
-     * @param docId The document ID to find
+     * @param pageId The page ID to find
      * @param keywords List to accumulate keywords
      * @param frequencies List to accumulate frequencies
      * @param weight Multiplier for frequency (e.g., 2.0 for title)
      * @throws IOException if iteration fails
      */
-    private void extractFromIndex(HTree index, String docId, List<String> keywords, 
+    private void extractFromIndex(HTree index, int pageId, List<String> keywords, 
                                    List<Integer> frequencies, double weight) throws IOException {
         FastIterator iterator = index.keys();
         String term;
@@ -81,11 +81,11 @@ public class DbKeywordExtractor {
             PostingList postingList = (PostingList) index.get(term);
             
             if (postingList != null) {
-                // Check if this document appears in the posting list
-                Set<String> docs = postingList.getDocuments();
-                if (docs.contains(docId)) {
-                    // Get frequency (number of times term appears in document)
-                    List<Integer> positions = postingList.getPositions(docId);
+                // Check if this page appears in the posting list
+                Set<Integer> pageIds = postingList.getPageIds();
+                if (pageIds.contains(pageId)) {
+                    // Get frequency (number of times term appears in page)
+                    List<Integer> positions = postingList.getPositions(pageId);
                     int frequency = (int) (positions.size() * weight);
                     
                     // Check if keyword already exists
