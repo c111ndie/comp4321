@@ -29,7 +29,7 @@ public class PostingList implements Serializable {
         return postings.size();
     }
 
-    public Map<String, Integer> getPostings() {
+    public Map<String, List<Integer>> getPostings() {
         return postings;
     }
 }
