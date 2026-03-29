@@ -56,7 +56,7 @@ public class Printer
     /**
      * Adds webpage content
      */
-    public void appendWebpageData(WebpageData data)
+    public void appendWebpageData(WebpageData data, int maxKeywords = 10, int maxChildLinks = 10)
     {
         // Sanity check
         if (!this.initialized) {
@@ -99,6 +99,9 @@ public class Printer
             if (data.keywords != null && data.freq != null) {
                 StringBuilder keywordLine = new StringBuilder();
                 for (int i = 0; i < data.keywords.length; i++) {
+                    if (i >= maxKeywords) {
+                        break;
+                    }
                     keywordLine.append(data.keywords[i])
                                .append(" ")
                                .append(data.freq[i]);
@@ -113,6 +116,11 @@ public class Printer
             // Child links
             if (data.childLinks != null) {
                 for (String link : data.childLinks) {
+                    if (maxChildLinks > 0 && link.equals(data.childLinks[maxChildLinks - 1])) {
+                        // bw.write("... (" + data.childLinks.length + " total)");
+                        bw.newLine();
+                        break;
+                    }
                     bw.write(link);
                     bw.newLine();
                 }
