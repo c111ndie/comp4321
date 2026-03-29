@@ -167,7 +167,8 @@ public final class Spider {
                     "Spider warning: no pages were saved. Check that the seed URL is reachable and returns HTTP 2xx HTML.");
         }
 
-        // Evict pages that were pushed beyond BFS position 30 (the "remove 31st page" rule).
+        // Evict pages that were pushed beyond BFS position 30 (the "remove 31st page"
+        // rule).
         // Any DB page not confirmed in coveredPageIds this run was displaced by a newly
         // inserted page appearing earlier in BFS order.
         if (!coveredPageIds.isEmpty()) {
