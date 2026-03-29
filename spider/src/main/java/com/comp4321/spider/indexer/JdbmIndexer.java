@@ -17,6 +17,7 @@ import java.util.Map;
  * Manages all JDBM-backed data structures needed for Phase 1.
  *
  * <h3>JDBM Database Schema</h3>
+ * 
  * <pre>
  * RecordManager "indexDB"  (or any name passed to constructor)
  * ├─ HTree "urlToPageId"       String(url)     → Integer(pageId)
@@ -49,15 +50,15 @@ public class JdbmIndexer {
 
     public JdbmIndexer(String dbName, String stopwordsPath) throws IOException {
         recman = RecordManagerFactory.createRecordManager(dbName);
-        urlToPageId       = loadOrCreate("urlToPageId");
-        pageIdToUrl       = loadOrCreate("pageIdToUrl");
-        wordToWordId      = loadOrCreate("wordToWordId");
-        wordIdToWord      = loadOrCreate("wordIdToWord");
+        urlToPageId = loadOrCreate("urlToPageId");
+        pageIdToUrl = loadOrCreate("pageIdToUrl");
+        wordToWordId = loadOrCreate("wordToWordId");
+        wordIdToWord = loadOrCreate("wordIdToWord");
         bodyInvertedIndex = loadOrCreate("bodyInvertedIndex");
-        titleInvertedIndex= loadOrCreate("titleInvertedIndex");
-        forwardIndex      = loadOrCreate("forwardIndex");
-        pageMetadata      = loadOrCreate("pageMetadata");
-        counters          = loadOrCreate("counters");
+        titleInvertedIndex = loadOrCreate("titleInvertedIndex");
+        forwardIndex = loadOrCreate("forwardIndex");
+        pageMetadata = loadOrCreate("pageMetadata");
+        counters = loadOrCreate("counters");
         stopStem = new StopStem(stopwordsPath);
     }
 
@@ -68,18 +69,18 @@ public class JdbmIndexer {
     /**
      * Indexes a single page.
      *
-     * @param pageId         Spider-assigned page ID (from PageRecord.pageId)
-     * @param url            Canonical URL of the page
-     * @param title          Page title (plain text)
-     * @param bodyText       Visible body text extracted from HTML
-     * @param lastModified   RFC-1123 last-modified string
-     * @param sizeBytes      Content length in bytes
-     * @param childUrls      Out-link URLs (up to 10 stored in metadata)
-     * @param parentUrls     Parent page URLs (pages linking to this page)
+     * @param pageId       Spider-assigned page ID (from PageRecord.pageId)
+     * @param url          Canonical URL of the page
+     * @param title        Page title (plain text)
+     * @param bodyText     Visible body text extracted from HTML
+     * @param lastModified RFC-1123 last-modified string
+     * @param sizeBytes    Content length in bytes
+     * @param childUrls    Out-link URLs (up to 10 stored in metadata)
+     * @param parentUrls   Parent page URLs (pages linking to this page)
      */
     public void indexPage(int pageId, String url, String title, String bodyText,
-                          String lastModified, long sizeBytes,
-                          List<String> childUrls, List<String> parentUrls) throws IOException {
+            String lastModified, long sizeBytes,
+            List<String> childUrls, List<String> parentUrls) throws IOException {
 
         // Register URL ↔ pageId mapping
         urlToPageId.put(url, pageId);
@@ -87,14 +88,16 @@ public class JdbmIndexer {
 
         // Tokenise and stem title and body
         Map<Integer, List<Integer>> titlePositions = tokeniseAndStem(title);
-        Map<Integer, List<Integer>> bodyPositions  = tokeniseAndStem(bodyText);
+        Map<Integer, List<Integer>> bodyPositions = tokeniseAndStem(bodyText);
 
         // Update title inverted index
         for (Map.Entry<Integer, List<Integer>> e : titlePositions.entrySet()) {
             int wordId = e.getKey();
             PostingList plist = (PostingList) titleInvertedIndex.get(wordId);
-            if (plist == null) plist = new PostingList();
-            for (int pos : e.getValue()) plist.addOccurrence(pageId, pos);
+            if (plist == null)
+                plist = new PostingList();
+            for (int pos : e.getValue())
+                plist.addOccurrence(pageId, pos);
             titleInvertedIndex.put(wordId, plist);
         }
 
@@ -102,12 +105,14 @@ public class JdbmIndexer {
         for (Map.Entry<Integer, List<Integer>> e : bodyPositions.entrySet()) {
             int wordId = e.getKey();
             PostingList plist = (PostingList) bodyInvertedIndex.get(wordId);
-            if (plist == null) plist = new PostingList();
-            for (int pos : e.getValue()) plist.addOccurrence(pageId, pos);
+            if (plist == null)
+                plist = new PostingList();
+            for (int pos : e.getValue())
+                plist.addOccurrence(pageId, pos);
             bodyInvertedIndex.put(wordId, plist);
         }
 
-        // Forward index: pageId → {wordId → freq}  (body only, for tf*idf in Phase 2)
+        // Forward index: pageId → {wordId → freq} (body only, for tf*idf in Phase 2)
         HashMap<Integer, Integer> bodyFreqMap = new HashMap<>();
         for (Map.Entry<Integer, List<Integer>> e : bodyPositions.entrySet()) {
             bodyFreqMap.put(e.getKey(), e.getValue().size());
@@ -118,7 +123,8 @@ public class JdbmIndexer {
         Map<String, Integer> stemFreqs = new HashMap<>();
         for (Map.Entry<Integer, List<Integer>> e : bodyPositions.entrySet()) {
             String stem = (String) wordIdToWord.get(e.getKey());
-            if (stem != null) stemFreqs.merge(stem, e.getValue().size(), Integer::sum);
+            if (stem != null)
+                stemFreqs.merge(stem, e.getValue().size(), Integer::sum);
         }
         // Top 10 body stems by frequency
         Map<String, Integer> topStems = new LinkedHashMap<>();
@@ -154,7 +160,8 @@ public class JdbmIndexer {
         Object key;
         while ((key = it.next()) != null) {
             PageMeta meta = (PageMeta) pageMetadata.get(key);
-            if (meta != null) result.add(meta);
+            if (meta != null)
+                result.add(meta);
         }
         result.sort(Comparator.comparingInt(m -> m.pageId));
         return result;
@@ -163,14 +170,16 @@ public class JdbmIndexer {
     /** Returns the posting list for a body term (by stem string), or null. */
     public PostingList getBodyPostingList(String stem) throws IOException {
         Integer wordId = (Integer) wordToWordId.get(stem);
-        if (wordId == null) return null;
+        if (wordId == null)
+            return null;
         return (PostingList) bodyInvertedIndex.get(wordId);
     }
 
     /** Returns the posting list for a title term (by stem string), or null. */
     public PostingList getTitlePostingList(String stem) throws IOException {
         Integer wordId = (Integer) wordToWordId.get(stem);
-        if (wordId == null) return null;
+        if (wordId == null)
+            return null;
         return (PostingList) titleInvertedIndex.get(wordId);
     }
 
@@ -195,7 +204,8 @@ public class JdbmIndexer {
 
     private HTree loadOrCreate(String name) throws IOException {
         long recid = recman.getNamedObject(name);
-        if (recid != 0) return HTree.load(recman, recid);
+        if (recid != 0)
+            return HTree.load(recman, recid);
         HTree tree = HTree.createInstance(recman);
         recman.setNamedObject(name, tree.getRecid());
         return tree;
@@ -203,17 +213,21 @@ public class JdbmIndexer {
 
     /**
      * Tokenises the text, removes stop words, stems each token, and maps each
-     * stem to its list of token positions (0-based).  New stems are assigned
+     * stem to its list of token positions (0-based). New stems are assigned
      * a fresh wordId and registered in wordToWordId / wordIdToWord.
      */
     private Map<Integer, List<Integer>> tokeniseAndStem(String text) throws IOException {
         Map<Integer, List<Integer>> wordPositions = new LinkedHashMap<>();
-        if (text == null || text.isBlank()) return wordPositions;
+        if (text == null || text.isBlank())
+            return wordPositions;
 
         String[] tokens = text.split("\\W+");
         int pos = 0;
         for (String token : tokens) {
-            if (token.isEmpty()) { pos++; continue; }
+            if (token.isEmpty()) {
+                pos++;
+                continue;
+            }
             String lower = token.toLowerCase();
             if (!stopStem.isStopWord(lower)) {
                 String stem = stopStem.stem(lower);
@@ -229,7 +243,8 @@ public class JdbmIndexer {
 
     private int getOrCreateWordId(String stem) throws IOException {
         Integer existing = (Integer) wordToWordId.get(stem);
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
 
         Integer next = (Integer) counters.get("nextWordId");
         int id = (next == null) ? 0 : next;

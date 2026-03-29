@@ -2,7 +2,10 @@ package com.comp4321.spider.indexer;
 
 class NewString {
     public String str;
-    NewString() { str = ""; }
+
+    NewString() {
+        str = "";
+    }
 }
 
 public class Porter {
@@ -20,7 +23,8 @@ public class Porter {
 
     private boolean hasSuffix(String word, String suffix, NewString stem) {
         String tmp = "";
-        if (word.length() <= suffix.length()) return false;
+        if (word.length() <= suffix.length())
+            return false;
         if (suffix.length() > 1)
             if (word.charAt(word.length() - 2) != suffix.charAt(suffix.length() - 2))
                 return false;
@@ -35,14 +39,26 @@ public class Porter {
 
     private boolean vowel(char ch, char prev) {
         switch (ch) {
-            case 'a': case 'e': case 'i': case 'o': case 'u': return true;
+            case 'a':
+            case 'e':
+            case 'i':
+            case 'o':
+            case 'u':
+                return true;
             case 'y': {
                 switch (prev) {
-                    case 'a': case 'e': case 'i': case 'o': case 'u': return false;
-                    default: return true;
+                    case 'a':
+                    case 'e':
+                    case 'i':
+                    case 'o':
+                    case 'u':
+                        return false;
+                    default:
+                        return true;
                 }
             }
-            default: return false;
+            default:
+                return false;
         }
     }
 
@@ -51,35 +67,56 @@ public class Porter {
         int length = stem.length();
         while (i < length) {
             for (; i < length; i++) {
-                if (i > 0) { if (vowel(stem.charAt(i), stem.charAt(i - 1))) break; }
-                else { if (vowel(stem.charAt(i), 'a')) break; }
+                if (i > 0) {
+                    if (vowel(stem.charAt(i), stem.charAt(i - 1)))
+                        break;
+                } else {
+                    if (vowel(stem.charAt(i), 'a'))
+                        break;
+                }
             }
             for (i++; i < length; i++) {
-                if (i > 0) { if (!vowel(stem.charAt(i), stem.charAt(i - 1))) break; }
-                else { if (!vowel(stem.charAt(i), '?')) break; }
+                if (i > 0) {
+                    if (!vowel(stem.charAt(i), stem.charAt(i - 1)))
+                        break;
+                } else {
+                    if (!vowel(stem.charAt(i), '?'))
+                        break;
+                }
             }
-            if (i < length) { count++; i++; }
+            if (i < length) {
+                count++;
+                i++;
+            }
         }
         return count;
     }
 
     private boolean containsVowel(String word) {
         for (int i = 0; i < word.length(); i++) {
-            if (i > 0) { if (vowel(word.charAt(i), word.charAt(i - 1))) return true; }
-            else { if (vowel(word.charAt(0), 'a')) return true; }
+            if (i > 0) {
+                if (vowel(word.charAt(i), word.charAt(i - 1)))
+                    return true;
+            } else {
+                if (vowel(word.charAt(0), 'a'))
+                    return true;
+            }
         }
         return false;
     }
 
     private boolean cvc(String str) {
         int length = str.length();
-        if (length < 3) return false;
+        if (length < 3)
+            return false;
         if ((!vowel(str.charAt(length - 1), str.charAt(length - 2)))
                 && (str.charAt(length - 1) != 'w') && (str.charAt(length - 1) != 'x')
                 && (str.charAt(length - 1) != 'y')
                 && (vowel(str.charAt(length - 2), str.charAt(length - 3)))) {
-            if (length == 3) return !vowel(str.charAt(0), '?');
-            else return !vowel(str.charAt(length - 3), str.charAt(length - 4));
+            if (length == 3)
+                return !vowel(str.charAt(0), '?');
+            else
+                return !vowel(str.charAt(length - 3), str.charAt(length - 4));
         }
         return false;
     }
@@ -89,13 +126,16 @@ public class Porter {
         if (str.charAt(str.length() - 1) == 's') {
             if ((hasSuffix(str, "sses", stem)) || (hasSuffix(str, "ies", stem))) {
                 String tmp = "";
-                for (int i = 0; i < str.length() - 2; i++) tmp += str.charAt(i);
+                for (int i = 0; i < str.length() - 2; i++)
+                    tmp += str.charAt(i);
                 str = tmp;
             } else {
-                if ((str.length() == 1) && (str.charAt(str.length() - 1) == 's')) return "";
+                if ((str.length() == 1) && (str.charAt(str.length() - 1) == 's'))
+                    return "";
                 if (str.charAt(str.length() - 2) != 's') {
                     String tmp = "";
-                    for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+                    for (int i = 0; i < str.length() - 1; i++)
+                        tmp += str.charAt(i);
                     str = tmp;
                 }
             }
@@ -103,16 +143,19 @@ public class Porter {
         if (hasSuffix(str, "eed", stem)) {
             if (measure(stem.str) > 0) {
                 String tmp = "";
-                for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+                for (int i = 0; i < str.length() - 1; i++)
+                    tmp += str.charAt(i);
                 str = tmp;
             }
         } else {
             if ((hasSuffix(str, "ed", stem)) || (hasSuffix(str, "ing", stem))) {
                 if (containsVowel(stem.str)) {
                     String tmp = "";
-                    for (int i = 0; i < stem.str.length(); i++) tmp += str.charAt(i);
+                    for (int i = 0; i < stem.str.length(); i++)
+                        tmp += str.charAt(i);
                     str = tmp;
-                    if (str.length() == 1) return str;
+                    if (str.length() == 1)
+                        return str;
                     if ((hasSuffix(str, "at", stem)) || (hasSuffix(str, "bl", stem)) || (hasSuffix(str, "iz", stem))) {
                         str += "e";
                     } else {
@@ -121,10 +164,12 @@ public class Porter {
                                 && (str.charAt(length - 1) != 'l') && (str.charAt(length - 1) != 's')
                                 && (str.charAt(length - 1) != 'z')) {
                             tmp = "";
-                            for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+                            for (int i = 0; i < str.length() - 1; i++)
+                                tmp += str.charAt(i);
                             str = tmp;
                         } else if (measure(str) == 1) {
-                            if (cvc(str)) str += "e";
+                            if (cvc(str))
+                                str += "e";
                         }
                     }
                 }
@@ -133,7 +178,8 @@ public class Porter {
         if (hasSuffix(str, "y", stem))
             if (containsVowel(stem.str)) {
                 String tmp = "";
-                for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+                for (int i = 0; i < str.length() - 1; i++)
+                    tmp += str.charAt(i);
                 str = tmp + "i";
             }
         return str;
@@ -141,17 +187,20 @@ public class Porter {
 
     private String step2(String str) {
         String[][] suffixes = {
-            {"ational","ate"}, {"tional","tion"}, {"enci","ence"}, {"anci","ance"},
-            {"izer","ize"}, {"iser","ize"}, {"abli","able"}, {"alli","al"},
-            {"entli","ent"}, {"eli","e"}, {"ousli","ous"}, {"ization","ize"},
-            {"isation","ize"}, {"ation","ate"}, {"ator","ate"}, {"alism","al"},
-            {"iveness","ive"}, {"fulness","ful"}, {"ousness","ous"}, {"aliti","al"},
-            {"iviti","ive"}, {"biliti","ble"}
+                { "ational", "ate" }, { "tional", "tion" }, { "enci", "ence" }, { "anci", "ance" },
+                { "izer", "ize" }, { "iser", "ize" }, { "abli", "able" }, { "alli", "al" },
+                { "entli", "ent" }, { "eli", "e" }, { "ousli", "ous" }, { "ization", "ize" },
+                { "isation", "ize" }, { "ation", "ate" }, { "ator", "ate" }, { "alism", "al" },
+                { "iveness", "ive" }, { "fulness", "ful" }, { "ousness", "ous" }, { "aliti", "al" },
+                { "iviti", "ive" }, { "biliti", "ble" }
         };
         NewString stem = new NewString();
         for (String[] suffix : suffixes) {
             if (hasSuffix(str, suffix[0], stem)) {
-                if (measure(stem.str) > 0) { str = stem.str + suffix[1]; return str; }
+                if (measure(stem.str) > 0) {
+                    str = stem.str + suffix[1];
+                    return str;
+                }
             }
         }
         return str;
@@ -159,26 +208,32 @@ public class Porter {
 
     private String step3(String str) {
         String[][] suffixes = {
-            {"icate","ic"}, {"ative",""}, {"alize","al"}, {"alise","al"},
-            {"iciti","ic"}, {"ical","ic"}, {"ful",""}, {"ness",""}
+                { "icate", "ic" }, { "ative", "" }, { "alize", "al" }, { "alise", "al" },
+                { "iciti", "ic" }, { "ical", "ic" }, { "ful", "" }, { "ness", "" }
         };
         NewString stem = new NewString();
         for (String[] suffix : suffixes) {
             if (hasSuffix(str, suffix[0], stem))
-                if (measure(stem.str) > 0) { str = stem.str + suffix[1]; return str; }
+                if (measure(stem.str) > 0) {
+                    str = stem.str + suffix[1];
+                    return str;
+                }
         }
         return str;
     }
 
     private String step4(String str) {
         String[] suffixes = {
-            "al","ance","ence","er","ic","able","ible","ant","ement","ment","ent",
-            "sion","tion","ou","ism","ate","iti","ous","ive","ize","ise"
+                "al", "ance", "ence", "er", "ic", "able", "ible", "ant", "ement", "ment", "ent",
+                "sion", "tion", "ou", "ism", "ate", "iti", "ous", "ive", "ize", "ise"
         };
         NewString stem = new NewString();
         for (String suffix : suffixes) {
             if (hasSuffix(str, suffix, stem)) {
-                if (measure(stem.str) > 1) { str = stem.str; return str; }
+                if (measure(stem.str) > 1) {
+                    str = stem.str;
+                    return str;
+                }
             }
         }
         return str;
@@ -188,25 +243,30 @@ public class Porter {
         if (str.charAt(str.length() - 1) == 'e') {
             if (measure(str) > 1) {
                 String tmp = "";
-                for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+                for (int i = 0; i < str.length() - 1; i++)
+                    tmp += str.charAt(i);
                 str = tmp;
             } else if (measure(str) == 1) {
                 String s = "";
-                for (int i = 0; i < str.length() - 1; i++) s += str.charAt(i);
-                if (!cvc(s)) str = s;
+                for (int i = 0; i < str.length() - 1; i++)
+                    s += str.charAt(i);
+                if (!cvc(s))
+                    str = s;
             }
         }
-        if (str.length() == 1) return str;
+        if (str.length() == 1)
+            return str;
         if ((str.charAt(str.length() - 1) == 'l') && (str.charAt(str.length() - 2) == 'l') && (measure(str) > 1)) {
             String tmp = "";
-            for (int i = 0; i < str.length() - 1; i++) tmp += str.charAt(i);
+            for (int i = 0; i < str.length() - 1; i++)
+                tmp += str.charAt(i);
             str = tmp;
         }
         return str;
     }
 
     private String stripPrefixes(String str) {
-        String[] prefixes = {"kilo","micro","milli","intra","ultra","mega","nano","pico","pseudo"};
+        String[] prefixes = { "kilo", "micro", "milli", "intra", "ultra", "mega", "nano", "pico", "pseudo" };
         for (String prefix : prefixes) {
             if (str.startsWith(prefix)) {
                 String temp = "";
@@ -220,10 +280,14 @@ public class Porter {
 
     private String stripSuffixes(String str) {
         str = step1(str);
-        if (str.length() >= 1) str = step2(str);
-        if (str.length() >= 1) str = step3(str);
-        if (str.length() >= 1) str = step4(str);
-        if (str.length() >= 1) str = step5(str);
+        if (str.length() >= 1)
+            str = step2(str);
+        if (str.length() >= 1)
+            str = step3(str);
+        if (str.length() >= 1)
+            str = step4(str);
+        if (str.length() >= 1)
+            str = step5(str);
         return str;
     }
 
@@ -232,7 +296,8 @@ public class Porter {
         str = Clean(str);
         if ((!str.isEmpty()) && (str.length() > 2)) {
             str = stripPrefixes(str);
-            if (!str.isEmpty()) str = stripSuffixes(str);
+            if (!str.isEmpty())
+                str = stripSuffixes(str);
         }
         return str;
     }

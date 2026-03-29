@@ -20,7 +20,8 @@ import java.util.Map;
 public final class Main {
     public static void main(String[] args) throws Exception {
         Map<String, String> parsed = parseArgs(args);
-        if (parsed.containsKey("help") || !parsed.containsKey("seed") || !parsed.containsKey("max-pages") || !parsed.containsKey("out")) {
+        if (parsed.containsKey("help") || !parsed.containsKey("seed") || !parsed.containsKey("max-pages")
+                || !parsed.containsKey("out")) {
             printUsage();
             if (!parsed.containsKey("help")) {
                 System.exit(2);
@@ -38,7 +39,8 @@ public final class Main {
         String userAgent = parsed.getOrDefault("user-agent", "comp4321-spider/1.0");
 
         // --- Crawl ---
-        SpiderConfig config = new SpiderConfig(seed, maxPages, outDir, politenessDelay, userAgent, ScopePolicy.sameHostOnly(seed));
+        SpiderConfig config = new SpiderConfig(seed, maxPages, outDir, politenessDelay, userAgent,
+                ScopePolicy.sameHostOnly(seed));
         Spider spider = new Spider(config);
         spider.crawl();
         PageStore store = spider.getLastStore();
@@ -48,7 +50,8 @@ public final class Main {
         // --- Index into JDBM ---
         JdbmIndexer indexer = new JdbmIndexer(dbName, stopwords);
         for (PageRecord page : store.pagesByIdAscending().values()) {
-            if (!page.isHtml) continue;
+            if (!page.isHtml)
+                continue;
 
             String html = store.readHtml(page).orElse("");
             String bodyText = extractBodyText(html);
@@ -69,8 +72,7 @@ public final class Main {
                     page.lastModifiedRfc1123,
                     page.sizeBytes,
                     childUrls,
-                    parentUrls
-            );
+                    parentUrls);
         }
         indexer.close();
         System.out.println("JDBM indexing complete. Database: " + dbName);
@@ -80,7 +82,8 @@ public final class Main {
 
     /** Extracts visible plain text from an HTML string using htmlparser. */
     static String extractBodyText(String html) {
-        if (html == null || html.isBlank()) return "";
+        if (html == null || html.isBlank())
+            return "";
         try {
             Parser parser = Parser.createParser(html, "UTF-8");
             TextExtractingVisitor visitor = new TextExtractingVisitor();
@@ -107,13 +110,17 @@ public final class Main {
         Map<String, String> out = new HashMap<>();
         for (int i = 0; i < args.length; i++) {
             String a = args[i];
-            if (!a.startsWith("--")) continue;
+            if (!a.startsWith("--"))
+                continue;
             String key = a.substring(2);
-            if (key.equals("help")) { out.put("help", "true"); continue; }
-            if (i + 1 >= args.length) break;
+            if (key.equals("help")) {
+                out.put("help", "true");
+                continue;
+            }
+            if (i + 1 >= args.length)
+                break;
             out.put(key, args[++i]);
         }
         return out;
     }
 }
-

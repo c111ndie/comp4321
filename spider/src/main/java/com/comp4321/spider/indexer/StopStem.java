@@ -17,7 +17,8 @@ public class StopStem {
     }
 
     /**
-     * Loads stopwords from a file path. If the file doesn't exist at the given path,
+     * Loads stopwords from a file path. If the file doesn't exist at the given
+     * path,
      * falls back to loading from the classpath (e.g., bundled in the JAR).
      */
     public StopStem(String str) {
@@ -45,7 +46,8 @@ public class StopStem {
                 String word;
                 while ((word = br.readLine()) != null) {
                     word = word.trim().toLowerCase();
-                    if (!word.isEmpty()) stopWords.add(word);
+                    if (!word.isEmpty())
+                        stopWords.add(word);
                 }
             }
         } catch (IOException e) {
@@ -55,7 +57,8 @@ public class StopStem {
     }
 
     public String stem(String str) {
-        if (str == null || str.isEmpty()) return "";
+        if (str == null || str.isEmpty())
+            return "";
         return porter.stripAffixes(str.toLowerCase());
     }
 }
