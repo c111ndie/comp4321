@@ -1,4 +1,4 @@
-# Text generator.java
+# txtGenerator.java
 It is just a program with two classes that allows writing the results into the required txt file.
 
 I placed it in util file of the spider.
@@ -36,10 +36,60 @@ This class is assigned to a txt path, receives a content and write them to the f
 ### Variables
 - private String output: The output text file path
 - initialized = false:  A tag that checks if WebpageData is initialized to facilitate sanity check
-- private boolean empty: A tag that is true if the Printer has checked the target is empty
+- private int entryCount: tracks number of written entries
+- private BufferedWriter sessionWriter: buffer for batch writing
+- private boolean inSession: whether batch session is active
 
 ### Methods
-- Printer(String output_txt_file_name): Constructor. FIle path mandatory.
+- Printer(String output_txt_file_name): Constructor. File path mandatory.
 - void initTxtFile(): Clears the text file.
-- void appendWebpageData(WebpageData data): Writes content to the end of text file. Automatically adds separator if file to be written is not empty.
-- void appendWebpageData(PageRecord data): Writes content to the end of text file. Automatically adds separator if file to be written is not empty.
+- void startSession(): Opens a buffered writer for batch mode.
+- void endSession(): Flushes and closes batch writer.
+- void appendWebpageData(WebpageData data): Writes content to end of file.
+- void appendWebpageData(PageRecord data): Writes PageRecord content to end of file.
+- void appendWebpageDataBatch(List<WebpageData> dataList): Batch append multiple WebpageData.
+- void appendPageRecordBatch(List<PageRecord> dataList): Batch append multiple PageRecord.
+- int getEntryCount(): Get total entries written.
+- void resetEntryCount(): Reset entry count to zero.
+
+# dbGenerator.java
+
+Full-text index generator that stores crawled pages into a JDBM-backed inverted index, and supports indexing, searching and summary export.
+
+## Overview
+- Works with PageStore / PageRecord from spider package.
+- Uses Indexer, InvertedIndex, PostingList, StopStem from COMP4321 package.
+- Builds separate title and body inverted indices with term positions.
+- Persists data in a folder specified by indexDbPath.
+- Supports export of index summary to text file.
+
+## Core Functionality
+- `dbGenerator(Path pageStorePath, Path indexDbPath, Path stopwordsPath)` : constructor.
+- `int indexAllPages()` : indexes all pages present in PageStore.
+- `boolean indexPageById(int pageId)` : indexes one page by its ID.
+- `boolean indexPage(PageRecord record)` : index single record.
+- `PostingList searchTitleTerm(String term)` : lookup title index postings.
+- `PostingList searchBodyTerm(String term)` : lookup body index postings.
+- `void exportIndexSummary(Path outputPath)` : write index summary to text.
+- `void close()` : close underlying indexer and flush data.
+- `Indexer getIndexer()` : access Indexer instance.
+- `PageStore getPageStore()` : access PageStore instance.
+- `int getIndexedPageCount()` : number of indexed pages.
+- `Set<Integer> getIndexedPageIds()` : get IDs of indexed pages.
+
+## Usage Example
+```java
+Path pageStorePath = Path.of("./pages");
+Path indexDbPath = Path.of("./indexDB");
+Path stopwordsPath = Path.of("./stopwords.txt");
+
+dbGenerator generator = new dbGenerator(pageStorePath, indexDbPath, stopwordsPath);
+int numIndexed = generator.indexAllPages();
+
+generator.exportIndexSummary(Path.of("index_summary.txt"));
+
+PostingList titleResults = generator.searchTitleTerm("information");
+PostingList bodyResults = generator.searchBodyTerm("retriev");
+
+generator.close();
+```
