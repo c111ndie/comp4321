@@ -59,7 +59,18 @@ public class WebpageData
         this.freq = null;
         this.initialized = false;
     }
-    public WebpageData(PageRecord page, String[] keywords, Object[] freq) {
+    public WebpageData(PageRecord page, String[] keywords, String[] freq) {
+        this.title = page.title;
+        this.url = page.url;
+        this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
+        this.sizeChars = String.valueOf(page.sizeChars);
+        this.childLinks = page.outLinks.toArray(new String[0]);
+        // Keywords and frequencies are not available in PageRecord, so set to null
+        this.keywords = keywords; 
+        this.freq = freq;
+        this.initialized = true;
+    }
+    public WebpageData(PageRecord page, String[] keywords, int[] freq) {
         this.title = page.title;
         this.url = page.url;
         this.lastModDate = (page.lastModifiedRfc1123 == null || page.lastModifiedRfc1123.isBlank()) ? "N/A" : page.lastModifiedRfc1123;
