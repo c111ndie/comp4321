@@ -51,17 +51,100 @@ mvnw.cmd -q clean package
 .\mvnw.cmd -q clean package
 ```
 
-## Run
 
-### macOS / Linux / Git Bash (Windows)
+## Run: Crawl, Index, and Export Results
+
+### 1. Crawl and Index (macOS / Linux / Git Bash / Windows)
 
 ```bash
+cd /workspaces/comp4321/spider
+./mvnw clean package -DskipTests
+
 java -jar target/spider-1.0.0.jar \
   --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
   --max-pages 30 \
   --out crawl-output \
   --db-name indexDB \
   --stopwords stopwords.txt
+```
+
+### 2. Compile Extraction/Export Tools
+
+```bash
+cd /workspaces/comp4321/txt_builder
+javac -cp "../spider/target/spider-1.0.0.jar" *.java
+```
+
+### 3. Export Results with Keywords
+
+```bash
+cd /workspaces/comp4321/spider
+java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
+```
+
+**Parameters:**
+- `crawl-output`: Path to the PageStore (contains `state.json` and `pages/`)
+- `indexDB`: Path to the JDBM database created by the spider
+- `crawl-output/spider_result.txt`: Output filename for the results
+
+**Output:**
+- Reads all crawled pages from PageStore
+- Extracts keywords and frequencies from JDBM database for each page
+- Generates `spider_result.txt` with all pages and their keywords
+
+**Success message:**
+```
+✅ Exported 30 pages to: spider_result.txt
+✅ Results exported successfully
+```
+
+**View the results:**
+```bash
+cat crawl-output/spider_result.txt
+```
+
+### Output Format
+
+Each page entry contains:
+```
+[Page Title]
+[URL]
+[Last Modified Date], [Size in bytes]
+[Keyword1] [Freq1]; [Keyword2] [Freq2]; ...
+[Child Link 1]
+[Child Link 2]
+...
+
+========================================================================
+[Next Page]
+...
+```
+
+### Complete Pipeline Example
+
+```bash
+# 1. Build spider
+cd /workspaces/comp4321/spider
+./mvnw clean package -DskipTests
+
+# 2. Run spider (crawls and indexes)
+java -jar target/spider-1.0.0.jar \
+    --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
+    --max-pages 30 \
+    --out crawl-output \
+    --db-name indexDB \
+    --stopwords stopwords.txt
+
+# 3. Compile extraction tools
+cd /workspaces/comp4321/txt_builder
+javac -cp "../spider/target/spider-1.0.0.jar" *.java
+
+# 4. Export results with keywords
+cd /workspaces/comp4321/spider
+java -cp "target/spider-1.0.0.jar:../txt_builder" SearchResultsExporter crawl-output indexDB crawl-output/spider_result.txt
+
+# 5. View results
+cat crawl-output/spider_result.txt
 ```
 
 ### Windows — Command Prompt or PowerShell
