@@ -21,6 +21,7 @@ This class packages the information required into a single object. This should p
 - WebpageData(String pageTitle, String url, String lastModDate, String sizeOfPage, String[] keywords, int[] freq, String[] childLinks): 
 Constructor that receives all required data
 - WebpageData(PageRecord page): Constructor that loads page record data.
+- WebpageData(PageRecord page, String[] keywords, String[] freq): Constructor that loads page record data and keyword data.
 - void loadWebpageData(String pageTitle, String url, String lastModDate, String sizeOfPage, String[] keywords, int[] freq, String[] childLinks): 
 Loads required data
 - boolean checkInitialized(): Checks if necessary fields have been filled
@@ -43,3 +44,7 @@ This class is assigned to a txt path, receives a content and write them to the f
 - void initTxtFile(): Clears the text file.
 - void appendWebpageData(WebpageData data): Writes content to the end of text file. Automatically adds separator if file to be written is not empty.
 - void appendWebpageData(PageRecord data): Writes content to the end of text file. Automatically adds separator if file to be written is not empty.
+
+# dbGenerator.java
+
+WIP
