@@ -3,7 +3,6 @@ package com.comp4321.spider.core;
 import com.comp4321.spider.http.FetchHints;
 import com.comp4321.spider.http.FetchResult;
 import com.comp4321.spider.http.HttpFetcher;
-import com.comp4321.spider.labs.Crawler;
 import com.comp4321.spider.labs.Lab2Crawler;
 import com.comp4321.spider.store.PageRecord;
 import com.comp4321.spider.store.PageStore;
@@ -18,17 +17,21 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import org.htmlparser.Node;
+import org.htmlparser.Parser;
+import org.htmlparser.filters.NodeClassFilter;
+import org.htmlparser.tags.TitleTag;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
 
 public final class Spider {
     private final SpiderConfig config;
     private final HttpFetcher fetcher;
-    private final Crawler crawler;
     private final Lab2Crawler lab2Crawler;
 
     public Spider(SpiderConfig config) {
         this.config = config;
         this.fetcher = new HttpFetcher(Duration.ofSeconds(30), config.userAgent);
-        this.crawler = new Crawler();
         this.lab2Crawler = new Lab2Crawler();
     }
 
@@ -107,7 +110,7 @@ public final class Spider {
                 String html = new String(result.bodyBytes == null ? new byte[0] : result.bodyBytes, charset);
                 store.saveHtml(record, html);
 
-                record.title = crawler.extractTitle(html);
+                record.title = extractTitle(html);
 
                 long sizeBytes = contentLength(result)
                         .orElse(result.bodyBytes == null ? 0L : (long) result.bodyBytes.length);
@@ -117,7 +120,7 @@ public final class Spider {
                 record.lastModifiedRfc1123 = HttpDates.formatRfc1123(chosen.instant == null ? result.fetchTime : chosen.instant);
                 record.lastModifiedFromHeader = chosen.fromLastModifiedHeader;
 
-                Set<URI> outLinks = extractLinksLab2Style(url, html);
+                Set<URI> outLinks = extractLinksLab2Style(url);
                 record.outLinks.clear();
                 for (URI link : outLinks) {
                     if (!config.scopePolicy.allows(link)) {
@@ -154,16 +157,31 @@ public final class Spider {
         return new CrawlReport(processedThisRun, frontier.seenCount());
     }
 
-    private Set<URI> extractLinksLab2Style(URI pageUrl, String htmlFallback) {
+    private Set<URI> extractLinksLab2Style(URI pageUrl) {
         java.util.LinkedHashSet<URI> out = new java.util.LinkedHashSet<>();
+        var links = lab2Crawler.extractLinks(pageUrl.toString());
+        for (String s : links) {
+            UrlCanonicalizer.resolveAndCanonicalize(pageUrl, s).ifPresent(out::add);
+        }
+        return out;
+    }
+
+    private static String extractTitle(String html) {
+        if (html == null || html.isBlank()) {
+            return "";
+        }
         try {
-            var links = lab2Crawler.extractLinks(pageUrl.toString());
-            for (String s : links) {
-                UrlCanonicalizer.resolveAndCanonicalize(pageUrl, s).ifPresent(out::add);
+            Parser parser = Parser.createParser(html, StandardCharsets.UTF_8.name());
+            NodeList nodes = parser.extractAllNodesThatMatch(new NodeClassFilter(TitleTag.class));
+            for (Node node : nodes.toNodeArray()) {
+                if (node instanceof TitleTag) {
+                    String title = ((TitleTag) node).getTitle();
+                    return (title == null) ? "" : title.trim();
+                }
             }
-            return out;
-        } catch (Exception ignored) {
-            return new java.util.LinkedHashSet<>(crawler.extractLinks(htmlFallback, pageUrl));
+            return "";
+        } catch (ParserException e) {
+            return "";
         }
     }
 

@@ -23,8 +23,7 @@ java -version
 ## Build
 
 ```bash
-./mvnw -q test
-./mvnw -q package
+./mvnw -q clean package
 ```
 
 ## Run
