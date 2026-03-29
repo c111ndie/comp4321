@@ -14,36 +14,80 @@ This folder contains code for processing crawled webpage data, extracting keywor
 
 After crawling with the spider (which generates the database and page store), you can extract and print the results as follows:
 
-1. **Prerequisites**:
-   - Ensure the spider has been run and generated the database (e.g., `indexDB`) and page store (e.g., in `crawl-output`).
-   - Compile the Java files: `javac *.java`
+1. **Compile the Java files**:
+   ```bash
+   cd /workspaces/comp4321/Ethan/code
+   javac -cp "../../spider/target/spider-1.0.0.jar" *.java
+   ```
 
 2. **Run SearchResultsExporter**:
-   ```
-   java SearchResultsExporter <dbPath> <outputPath> <pageStorePath>
-   ```
-
-   - `<dbPath>`: Path to the JDBM database directory (e.g., `../spider/indexDB`)
-   - `<outputPath>`: Directory where output txt files will be saved (e.g., `output`)
-   - `<pageStorePath>`: Path to the PageStore directory containing crawled pages (e.g., `../spider/crawl-output`)
-
-   **Example**:
-   ```
-   java SearchResultsExporter ../spider/indexDB output ../spider/crawl-output
+   ```bash
+   cd /workspaces/comp4321/spider
+   java -cp "target/spider-1.0.0.jar:../Ethan/code" SearchResultsExporter crawl-output indexDB results.txt
    ```
 
-   This command will:
-   - Read all pages from the PageStore
-   - Extract keywords and frequencies from the JDBM database for each page
-   - Generate individual txt files in the `output` directory, each containing webpage metadata, keywords, and frequencies
+   **Parameters**:
+   - `crawl-output`: Path to the PageStore (contains `state.json` and `pages/`)
+   - `indexDB`: Path to the JDBM database created by the spider
+   - `results.txt`: Output filename for the results
 
-3. **Output Format**:
-   Each output file will contain:
-   - Webpage URL, title, size, and other metadata
-   - List of keywords with their frequencies
-   - Formatted for easy reading and further processing
+3. **Output**:
+   The command will:
+   - Read all 30 crawled pages from PageStore
+   - Extract keywords and frequencies from JDBM database for each page
+   - Generate `results.txt` with all pages and their keywords
+   
+   Success message:
+   ```
+   ✅ Exported 30 pages to: results.txt
+   ✅ Results exported successfully
+   ```
 
-### Notes
-- The code assumes integration with the spider's PageStore and indexer components.
-- For large datasets, the session-based buffering in txtGenerator provides significant performance improvements.
-- Ensure all required classes (from spider package) are available in the classpath during compilation and runtime.
+4. **View the results**:
+   ```bash
+   cat results.txt
+   ```
+
+### Output Format
+
+Each page entry contains:
+```
+[Page Title]
+[URL]
+[Last Modified Date], [Size in bytes]
+[Keyword1] [Freq1]; [Keyword2] [Freq2]; ...
+[Child Link 1]
+[Child Link 2]
+...
+
+========================================================================
+[Next Page]
+...
+```
+
+### Complete Pipeline Example
+
+```bash
+# 1. Build spider
+cd /workspaces/comp4321/spider
+./mvnw clean package -DskipTests
+
+# 2. Run spider (crawls and indexes)
+java -jar target/spider-1.0.0.jar \
+    --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
+    --max-pages 30 \
+    --out crawl-output \
+    --db-name indexDB \
+    --stopwords stopwords.txt
+
+# 3. Compile extraction tools
+cd /workspaces/comp4321/Ethan/code
+javac -cp "../../spider/target/spider-1.0.0.jar" *.java
+
+# 4. Export results with keywords
+cd /workspaces/comp4321/spider
+java -cp "target/spider-1.0.0.jar:../Ethan/code" SearchResultsExporter crawl-output indexDB results.txt
+
+# 5. View results
+cat results.txt
+```
