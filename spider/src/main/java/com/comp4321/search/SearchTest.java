@@ -1,47 +1,72 @@
 package com.comp4321.search;
 
+import jdbm.helper.FastIterator;
 import com.comp4321.spider.indexer.StopStem;
+import com.comp4321.spider.indexer.PageMeta;
+import com.comp4321.spider.indexer.PostingList;
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
 import jdbm.htree.HTree;
+import java.util.stream.Collectors;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
-/**
- * Test the search engine with an existing JDBM 1.0 database.
- * <p>
- * Assumes the database files are named "indexDB" (from your --db-name argument).
- * The stopwords file is "stopwords.txt" in the current directory.
- */
 public class SearchTest {
 
     public static void main(String[] args) throws IOException {
-        // 1. Open the existing JDBM 1.0 database
-        String dbName = "indexDB";          // matches --db-name used in indexing
+        String dbName = "indexDB";  
         RecordManager recman = RecordManagerFactory.createRecordManager(dbName);
 
-        // 2. Retrieve the record IDs of the HTrees (they were saved using setNamedObject)
-        long wordIdRec = recman.getNamedObject("wordToWordId");
-        long bodyIdRec = recman.getNamedObject("bodyInvertedIndex");
-        long metaIdRec = recman.getNamedObject("pageMetadata");
+        Long wordIdRec = (Long) recman.getNamedObject("wordToWordId");
+        Long bodyIdRec = (Long) recman.getNamedObject("bodyInvertedIndex");
+        Long metaIdRec = (Long) recman.getNamedObject("pageMetadata");
 
-        // 3. Load the HTrees using the record IDs
+        if (wordIdRec == null || bodyIdRec == null || metaIdRec == null) {
+            System.err.println("Named objects not found. Did the indexer store them?");
+            System.err.println("Attempting brute-force loading...");
+            System.err.println("Unavailable feature. Terminating test.");
+            return;
+        }
+
         HTree wordToWordId = HTree.load(recman, wordIdRec);
         HTree bodyInvertedIndex = HTree.load(recman, bodyIdRec);
         HTree pageMetadata = HTree.load(recman, metaIdRec);
 
-        // 4. Create StopStem with the stopwords file (used during indexing)
-        String stopwordsFile = "stopwords.txt";   // adjust path if needed
-        StopStem stopStem = new StopStem(stopwordsFile);
+        System.out.println("HTrees loaded successfully.");
 
-        // 5. Create a simple query parser (same as before)
+        // StopStem requires stopwords file
+        String stopwordsFile = "stopwords.txt";
+        StopStem stopStem;
+        stopStem = new StopStem(stopwordsFile);
         QueryParser parser = new QueryParser(stopStem);
 
-        // 6. Test queries
+        // Printing for debug purposes
+        if (false)
+        {
+            // Diagnostic: test one known word
+            System.out.println("\n=== DIAGNOSTIC: search for 'maintain' (exists in page 53) ===");
+            Integer wid = (Integer) wordToWordId.get("maintain");
+            if (wid != null) {
+                PostingList pl = (PostingList) bodyInvertedIndex.get(wid);
+                System.out.println("  Posting list page IDs: " + pl.getPageIds());
+                // Build a query with this single term and run Search.execute
+                List<String> terms = new ArrayList<>();
+                terms.add("maintain");
+                Query diagQuery = new Query(terms, new ArrayList<>());
+                Search diagSearch = new Search(diagQuery, wordToWordId, bodyInvertedIndex, pageMetadata);
+                List<Integer> results = diagSearch.execute();
+                System.out.println("  Search.execute() returned: " + results);
+            } else {
+                System.out.println("  'maintain' not found in wordToWordId");
+            }
+            System.out.println("=== End diagnostic ===\n");
+        }
         String[] testQueries = {
             "news",
             "new",
+            "computer",
+            "maintain",
             "\"hong kong\"",
             "news \"hong kong\""
         };
@@ -49,18 +74,20 @@ public class SearchTest {
         for (String queryStr : testQueries) {
             System.out.println("\n=== Query: " + queryStr + " ===");
             Query query = parser.parse(queryStr);
+            System.out.println("  Parsed query: single=" + query.getSingleTerms() + ", phrases=" + query.getPhrases());
             System.out.println("  Single terms: " + query.getSingleTerms());
             System.out.println("  Phrases: " + query.getPhrases());
 
-            // The Search class constructor expects HTree (JDBM 1.0 works fine)
             Search search = new Search(query, wordToWordId, bodyInvertedIndex, pageMetadata);
             List<Integer> results = search.execute();
 
             if (results.isEmpty()) {
                 System.out.println("  No results.");
             } else {
-                System.out.print("  Top document IDs: ");
-                results.stream().limit(10).forEach(id -> System.out.print(id + " "));
+                System.out.print("  Top documents: ");
+                for (Search.SearchResult r : results.stream().limit(10).collect(Collectors.toList())) {
+                    System.out.print(r.docId + "(score=" + String.format("%.4f", r.score) + ") ");
+                }
                 System.out.println();
             }
         }
@@ -68,10 +95,6 @@ public class SearchTest {
         recman.close();
     }
 
-    /**
-     * Simple query parser that handles quoted phrases and single terms,
-     * applying stopword removal and stemming.
-     */
     static class QueryParser {
         private final StopStem stopStem;
 
@@ -86,24 +109,24 @@ public class SearchTest {
             List<String> tokens = tokenizePreserveQuotes(rawQuery);
             for (String token : tokens) {
                 if (token.startsWith("\"") && token.endsWith("\"") && token.length() > 1) {
-                    // Phrase: remove quotes, split, stop+stem each word
                     String phraseContent = token.substring(1, token.length() - 1);
                     String[] words = phraseContent.split("\\s+");
                     List<String> stemmedPhrase = new ArrayList<>();
                     for (String w : words) {
                         String lower = w.toLowerCase();
                         if (!stopStem.isStopWord(lower)) {
-                            String stem = stopStem.stem(lower);
-                            if (!stem.isEmpty()) stemmedPhrase.add(stem);
+                            if (!lower.isEmpty()) stemmedPhrase.add(lower);  // use original word, not stem
+                            //String stem = stopStem.stem(lower);
+                            //if (!stem.isEmpty()) stemmedPhrase.add(stem);
                         }
                     }
                     if (!stemmedPhrase.isEmpty()) phrases.add(stemmedPhrase);
                 } else {
-                    // Single term
                     String lower = token.toLowerCase();
                     if (!stopStem.isStopWord(lower)) {
-                        String stem = stopStem.stem(lower);
-                        if (!stem.isEmpty()) singleTerms.add(stem);
+                        if (!lower.isEmpty()) singleTerms.add(lower);  // use original word, not stem
+                        //String stem = stopStem.stem(lower);
+                        //if (!stem.isEmpty()) singleTerms.add(stem);
                     }
                 }
             }

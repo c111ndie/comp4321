@@ -1,5 +1,9 @@
 package com.comp4321.search;
 
+import com.comp4321.spider.indexer.StopStem;
+import com.comp4321.spider.indexer.PostingList;
+import com.comp4321.spider.indexer.PageMeta;
+
 import jdbm.RecordManager;
 import jdbm.RecordManagerFactory;
 import jdbm.helper.FastIterator;
@@ -12,26 +16,26 @@ public class Search {
     private Query query;
     private HTree wordToWordId;         // stem -> wordId
     private HTree bodyInvertedIndex;    // wordId -> PostingList
-    private HTree pageMetadata;         // docId -> PageMetadata object
+    private HTree pageMeta;         // docId -> PageMeta object
 
-    // Total number of documents (stored in pageMetadata under a special key, e.g. -1)
+    // Total number of documents (stored in pageMeta under a special key, e.g. -1)
     private int totalDocuments;
 
     public Search(Query query, HTree wordToWordId, HTree bodyInvertedIndex, 
-                  HTree pageMetadata) throws IOException {
+                  HTree pageMeta) throws IOException {
         this.query = query;
         this.wordToWordId = wordToWordId;
         this.bodyInvertedIndex = bodyInvertedIndex;
-        this.pageMetadata = pageMetadata;
+        this.pageMeta = pageMeta;
         // Assume the total number of documents is stored under key -1.
-        // If not, compute by iterating over pageMetadata keys (excluding -1).
-        Integer storedTotal = (Integer) pageMetadata.get(-1);
+        // If not, compute by iterating over pageMeta keys (excluding -1).
+        Integer storedTotal = (Integer) pageMeta.get(-1);
         if (storedTotal != null) {
             this.totalDocuments = storedTotal;
         } else {
-            // Fallback: count document IDs from pageMetadata
+            // Fallback: count document IDs from pageMeta
             int count = 0;
-            FastIterator keys = pageMetadata.keys();
+            FastIterator keys = pageMeta.keys();
             Object key;
             while ((key = keys.next()) != null) {
                 if (!key.equals(-1)) count++;
@@ -50,7 +54,7 @@ public class Search {
      *
      * @return list of page IDs (documents) in descending order of relevance.
      */
-    public List<Integer> execute() throws IOException {
+    public List<SearchResult> execute() throws IOException {
         // 1. Gather all query components (single terms and phrases) and compute
         //    their posting lists and IDF values.
         List<QueryComponent> components = new ArrayList<>();
@@ -102,8 +106,11 @@ public class Search {
         }
 
         // 4. Sort documents by descending score
-        List<Integer> result = new ArrayList<>(scores.keySet());
-        result.sort((a, b) -> Double.compare(scores.get(b), scores.get(a)));
+        List<SearchResult> result = new ArrayList<>();
+        for (Map.Entry<Integer, Double> entry : scores.entrySet()) {
+            result.add(new SearchResult(entry.getKey(), entry.getValue()));
+        }
+        result.sort(null); // uses SearchResult's compareTo
         return result;
     }
 
@@ -115,13 +122,17 @@ public class Search {
     }
 
     private Double getDocumentNorm(int docId) throws IOException {
-        PageMetadata meta = (PageMetadata) pageMetadata.get(docId);
-        return meta == null ? null : meta.getNorm();
+        PageMeta meta = (PageMeta) pageMeta.get(docId);
+        if (meta == null) return 1.0;
+        double norm = meta.getNorm();
+        return norm == 0 ? 1.0 : norm;
     }
 
     private Double getMaxTermFrequency(int docId) throws IOException {
-        PageMetadata meta = (PageMetadata) pageMetadata.get(docId);
-        return meta == null ? null : meta.getMaxTermFrequency();
+        PageMeta meta = (PageMeta) pageMeta.get(docId);
+        if (meta == null) return 1.0;
+        double maxTf = meta.getMaxTermFrequency();
+        return maxTf == 0 ? 1.0 : maxTf;
     }
 
     private double computeQueryNorm(List<QueryComponent> components) {
@@ -151,9 +162,9 @@ public class Search {
         }
 
         // Intersect documents that contain all words (necessary for phrase)
-        Set<Integer> docsWithAllWords = new HashSet<>(postingLists.get(0).getDocuments());
+        Set<Integer> docsWithAllWords = new HashSet<>(postingLists.get(0).getPageIds());
         for (int i = 1; i < postingLists.size(); i++) {
-            docsWithAllWords.retainAll(postingLists.get(i).getDocuments());
+            docsWithAllWords.retainAll(postingLists.get(i).getPageIds());
         }
 
         // For each document, compute phrase frequency (consecutive occurrences)
@@ -202,7 +213,7 @@ public class Search {
             this.term = term;
             this.postingList = pl;
             this.idf = idf;
-            this.docSet = new HashSet<>(pl.getDocuments());
+            this.docSet = new HashSet<>(pl.getPageIds());
         }
 
         @Override
@@ -212,8 +223,8 @@ public class Search {
 
         @Override
         public double getDocumentWeight(int docId) throws IOException {
-            if (!postingList.containsDocument(docId)) return 0.0;
-            int tf = postingList.getFrequency(docId); // or postingList.getPositions(docId).size()
+            if (postingList.getTermFrequency(docId) == 0) return 0.0;
+            int tf = postingList.getTermFrequency(docId); // or postingList.getPositions(docId).size()
             Double maxTf = getMaxTermFrequency(docId);
             if (maxTf == null || maxTf == 0) return 0.0;
             return (tf / maxTf) * idf;
@@ -236,7 +247,7 @@ public class Search {
             this.words = words;
             this.phraseData = data;
             this.idf = idf;
-            this.docSet = new HashSet<>(data.postingList.getDocuments());
+            this.docSet = new HashSet<>(data.postingList.getPageIds());
         }
 
         @Override
@@ -282,8 +293,24 @@ public class Search {
             this.frequency = freq;
         }
         List<Integer> getDocuments() { return documents; }
+        Set<Integer> getPageIds() { return new HashSet<>(documents); }
         int getDocumentFrequency() { return documents.size(); }
         int getFrequency(int docId) { return frequency.getOrDefault(docId, 0); }
         boolean containsDocument(int docId) { return frequency.containsKey(docId); }
+    }
+
+    public static class SearchResult implements Comparable<SearchResult> {
+        public final int docId;
+        public final double score;
+        
+        public SearchResult(int docId, double score) {
+            this.docId = docId;
+            this.score = score;
+        }
+        
+        @Override
+        public int compareTo(SearchResult o) {
+            return Double.compare(o.score, this.score); // descending order
+        }
     }
 }
