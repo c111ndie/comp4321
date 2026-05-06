@@ -1,5 +1,6 @@
 package com.comp4321.search;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,15 +9,21 @@ import java.util.List;
  * Example: "apple pie" (phrase) banana (term) -> 
  *   phrases = [["apple", "pie"]]
  *   singleTerms = ["banana"]
+ * 
+ * Immutable and serializable for potential persistence.
  */
-public class Query {
-    private final List<String> singleTerms = new ArrayList<>();
-    private final List<List<String>> phrases = new ArrayList<>();
+public class Query implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
+    private final List<String> singleTerms;      // e.g., ["restaurant"]
+    private final List<List<String>> phrases;    // e.g., [ ["hong","kong"] ]
 
     /**
      * Default constructor for an empty query.
      */
     public Query() {
+        this.singleTerms = new ArrayList<>();
+        this.phrases = new ArrayList<>();
     }
 
     /**
@@ -26,28 +33,8 @@ public class Query {
      * @param phrases     list of exact phrases (each phrase is a list of consecutive words)
      */
     public Query(List<String> singleTerms, List<List<String>> phrases) {
-        if (singleTerms != null) {
-            this.singleTerms.addAll(singleTerms);
-        }
-        if (phrases != null) {
-            for (List<String> phrase : phrases) {
-                this.phrases.add(new ArrayList<>(phrase));
-            }
-        }
-    }
-
-    /**
-     * Adds a single search term to this query.
-     */
-    public void addTerm(String term) {
-        singleTerms.add(term);
-    }
-
-    /**
-     * Adds an exact phrase (multiple consecutive words) to this query.
-     */
-    public void addPhrase(List<String> phraseWords) {
-        phrases.add(new ArrayList<>(phraseWords));
+        this.singleTerms = singleTerms;
+        this.phrases = phrases;
     }
 
     /**
