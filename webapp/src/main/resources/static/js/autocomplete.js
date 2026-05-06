@@ -146,14 +146,19 @@
         const selectedWrap = options?.selectedWrap;
         const selectedChips = options?.selectedChips;
         const clearButton = options?.clearButton;
+        const searchButton = options?.searchButton;
         const queryInput = options?.queryInput;
         const onQueryChange = options?.onQueryChange;
+        const onSearch = options?.onSearch;
 
         if (!browseButton || !panel || !filterInput || !listEl || !selectedWrap || !selectedChips || !queryInput) {
             return;
         }
 
         let catalog = [];
+        let filteredItems = [];
+        let renderedCount = 0;
+        const PAGE_SIZE = 100;
 
         function syncSelectedChips() {
             const tokens = parseQueryTokens(queryInput.value);
@@ -178,12 +183,12 @@
 
         function renderList(filterValue) {
             const needle = (filterValue || '').trim().toLowerCase();
-            const items = catalog
-                .filter(keyword => !needle || keyword.toLowerCase().includes(needle))
-                .slice(0, 120);
+            filteredItems = catalog
+                .filter(keyword => !needle || keyword.toLowerCase().includes(needle));
+            renderedCount = 0;
             listEl.innerHTML = '';
 
-            if (!items.length) {
+            if (!filteredItems.length) {
                 const empty = document.createElement('p');
                 empty.className = 'keyword-browser-empty';
                 empty.textContent = 'No indexed keywords match this filter.';
@@ -191,7 +196,12 @@
                 return;
             }
 
-            items.forEach(keyword => {
+            appendNextPage();
+        }
+
+        function appendNextPage() {
+            const batch = filteredItems.slice(renderedCount, renderedCount + PAGE_SIZE);
+            batch.forEach(keyword => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'keyword-browser-item';
@@ -205,7 +215,16 @@
                 });
                 listEl.appendChild(button);
             });
+            renderedCount += batch.length;
         }
+
+        // Infinite scroll: load more when near the bottom of the list container
+        listEl.addEventListener('scroll', () => {
+            if (renderedCount >= filteredItems.length) return;
+            if (listEl.scrollTop + listEl.clientHeight >= listEl.scrollHeight - 80) {
+                appendNextPage();
+            }
+        });
 
         function updateQuery(nextQuery, shouldSubmit) {
             queryInput.value = nextQuery;
@@ -247,6 +266,21 @@
                 filterInput.value = '';
                 renderList(filterInput.value);
                 queryInput.focus();
+            });
+        }
+
+        if (searchButton) {
+            searchButton.addEventListener('click', () => {
+                const q = queryInput.value.trim();
+                if (!q) return;
+                panel.hidden = true;
+                if (typeof onSearch === 'function') {
+                    onSearch(q);
+                } else if (queryInput.form) {
+                    queryInput.form.requestSubmit
+                        ? queryInput.form.requestSubmit()
+                        : queryInput.form.submit();
+                }
             });
         }
 

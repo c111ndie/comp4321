@@ -40,10 +40,10 @@
         selectedWrap: document.getElementById('resultsKeywordSelected'),
         selectedChips: document.getElementById('resultsKeywordSelectedChips'),
         clearButton: document.getElementById('resultsKeywordClear'),
+        searchButton: document.getElementById('resultsKeywordSearch'),
         queryInput: input,
-        onQueryChange(nextQuery) {
-            if (!nextQuery.trim()) return;
-            window.location.href = '/results.html?q=' + encodeURIComponent(nextQuery.trim());
+        onSearch(q) {
+            window.location.href = '/results.html?q=' + encodeURIComponent(q);
         }
     });
 
@@ -171,6 +171,14 @@
                 parts.push(formatBytes(r.sizeBytes));
             }
             metaLine.textContent = parts.join(' · ');
+
+            // Missing terms
+            const missingEl = card.querySelector('.result-missing');
+            if (Array.isArray(r.missingTerms) && r.missingTerms.length) {
+                missingEl.innerHTML = '<span class="missing-label">Missing: </span>' +
+                    r.missingTerms.map(t => '<span class="missing-term">' + t + '</span>').join(', ');
+                missingEl.hidden = false;
+            }
 
             // Keywords
             const kwEl = card.querySelector('.result-keywords');

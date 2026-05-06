@@ -540,6 +540,7 @@ public class MockSearchController {
         private final List<KeywordFreq> keywords;
         private final List<String> parentLinks;
         private final List<String> childLinks;
+        private List<String> missingTerms = new ArrayList<>();
 
         public SearchResultItem(double score, String title, String url, String lastModified, long sizeBytes,
                                 List<KeywordFreq> keywords, List<String> parentLinks, List<String> childLinks) {
@@ -551,6 +552,14 @@ public class MockSearchController {
             this.keywords = keywords;
             this.parentLinks = parentLinks;
             this.childLinks = childLinks;
+        }
+
+        public void setMissingTerms(List<String> missingTerms) {
+            this.missingTerms = missingTerms == null ? new ArrayList<>() : missingTerms;
+        }
+
+        public List<String> getMissingTerms() {
+            return missingTerms;
         }
 
         public double getScore() {

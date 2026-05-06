@@ -610,6 +610,27 @@ kbd {
     font-weight: 600;
 }
 
+.keyword-browser-close:hover,
+.keyword-browser-clear:hover {
+    background: var(--navy-pale);
+    color: var(--navy);
+}
+
+.keyword-browser-search {
+    border: none;
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 999px;
+    padding: .45rem 1rem;
+    font-size: .78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.keyword-browser-search:hover {
+    background: var(--navy-light);
+}
+
 .keyword-browser-toolbar {
     display: flex;
     align-items: center;
@@ -1116,6 +1137,21 @@ kbd {
     flex-wrap: wrap;
     gap: .3rem;
     margin-top: .2rem;
+}
+
+.result-missing {
+    font-size: .78rem;
+    color: var(--text-muted);
+    margin-top: .25rem;
+}
+
+.missing-label {
+    font-weight: 600;
+}
+
+.missing-term {
+    text-decoration: underline dotted;
+    cursor: default;
 }
 
 .result-actions {
