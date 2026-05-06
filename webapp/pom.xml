@@ -40,6 +40,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <!-- Thymeleaf Template Engine (works with Spring Boot embedded Tomcat) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- Spider integration -->
+        <dependency>
+            <groupId>com.comp4321</groupId>
+            <artifactId>spider</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
