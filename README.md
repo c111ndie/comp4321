@@ -19,12 +19,22 @@ If you installed Java via Homebrew:
 
 ```bash
 brew install openjdk@11
-export JAVA_HOME="$(dirname $(dirname $(which java)))"
+export JAVA_HOME="$(brew --prefix openjdk@11)"
 export PATH="$JAVA_HOME/bin:$PATH"
 java -version   # should print: openjdk version "11.x.x"
 ```
 
-Add the `export` lines to `~/.zshrc` (or `~/.bash_profile`) to make them permanent.
+> **Note:** Do not use `$(dirname $(dirname $(which java)))` — on macOS, `which java` resolves to the system stub at `/usr/bin/java`, not the Homebrew JDK. Use `brew --prefix openjdk@11` instead.
+
+To avoid re-exporting in every new terminal, add the lines permanently to `~/.zshrc`:
+
+```bash
+echo 'export JAVA_HOME="$(brew --prefix openjdk@11)"' >> ~/.zshrc
+echo 'export PATH="$JAVA_HOME/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+After this, `java` will be available in all new terminals automatically.
 
 ### Linux
 
@@ -46,15 +56,32 @@ export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
 export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
+To make this permanent, add the lines to `~/.bashrc` (or `~/.zshrc` if using zsh):
+
+```bash
+echo 'export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))' >> ~/.bashrc
+echo 'export PATH="$JAVA_HOME/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
 ### Windows
 
 1. Download and install [Eclipse Temurin JDK 11](https://adoptium.net/temurin/releases/?version=11) (`.msi` installer).
-   The installer sets `JAVA_HOME` and updates `PATH` automatically.
+   The installer sets `JAVA_HOME` and updates `PATH` automatically — no manual setup needed.
 2. Open a **new** Command Prompt or PowerShell and verify:
 
 ```powershell
 java -version
 ```
+
+If `JAVA_HOME` was not set automatically, set it permanently via PowerShell (run as Administrator):
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Eclipse Adoptium\jdk-11.*", "Machine")
+[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";%JAVA_HOME%\bin", "Machine")
+```
+
+Then open a new terminal and run `java -version` to confirm.
 
 ---
 
