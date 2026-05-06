@@ -142,7 +142,7 @@ public class Search {
 
         if (components.isEmpty()) return Collections.emptyList();
 
-        // 2. Intersect document sets from all components (AND semantics)
+        // 2. Intersect document sets from all components (OR semantics)
         Set<Integer> candidates = new HashSet<>();
         for (QueryComponent comp : components) {
             candidates.addAll(comp.getDocumentSet());
@@ -151,24 +151,39 @@ public class Search {
 
         // 3. For each candidate document, compute cosine similarity
         Map<Integer, Double> scores = new HashMap<>();
+        Map<Integer, List<String>> missingTermsMap = new HashMap<>();
+
         for (int docId : candidates) {
             double dotProduct = 0.0;
+            List<String> missing = new ArrayList<>();
+            
             for (QueryComponent comp : components) {
                 double docWeight = comp.getDocumentWeight(docId);
                 double queryWeight = comp.getQueryWeight();
                 dotProduct += docWeight * queryWeight;
+                
+                // Check if this component is absent
+                if (!comp.getDocumentSet().contains(docId)) {
+                    // comp.getTermString() – you need to add a method to get the term/phrase text
+                    missing.add(comp.getDisplayText());
+                }
             }
+            
             Double docNorm = getDocumentNorm(docId);
             if (docNorm == null || docNorm == 0.0) continue;
             double queryNorm = computeQueryNorm(components);
             double cosine = dotProduct / (docNorm * queryNorm);
+            
+            missingTermsMap.put(docId, missing);
             scores.put(docId, cosine);
         }
-
         // 4. Sort documents by descending score
         List<SearchResult> result = new ArrayList<>();
         for (Map.Entry<Integer, Double> entry : scores.entrySet()) {
-            result.add(new SearchResult(entry.getKey(), entry.getValue()));
+            int docId = entry.getKey();
+            double score = entry.getValue();
+            List<String> missing = missingTermsMap.getOrDefault(docId, Collections.emptyList());
+            result.add(new SearchResult(docId, score, missing));
         }
         result.sort(null); // uses SearchResult's compareTo
         return result;
@@ -261,6 +276,7 @@ public class Search {
         Set<Integer> getDocumentSet();
         double getDocumentWeight(int docId) throws IOException;
         double getQueryWeight();
+        String getDisplayText();   // new method
     }
 
     private class TermComponent implements QueryComponent {
@@ -302,6 +318,10 @@ public class Search {
 
         @Override
         public double getQueryWeight() { return idf; }
+        @Override
+        public String getDisplayText() {
+            return term;   // the stemmed/original term
+        }
     }
 
     private class PhraseComponent implements QueryComponent {
@@ -336,6 +356,10 @@ public class Search {
             // phrase appears once in the query
             return idf;
         }
+        @Override
+        public String getDisplayText() {
+            return String.join(" ", words);   // e.g., "hong kong"
+        }
     }
 
     // Simple data container for phrase results
@@ -369,15 +393,17 @@ public class Search {
     public static class SearchResult implements Comparable<SearchResult> {
         public final int docId;
         public final double score;
-        
-        public SearchResult(int docId, double score) {
+        public final List<String> missingKeywords;   // query terms not in this document
+
+        public SearchResult(int docId, double score, List<String> missingKeywords) {
             this.docId = docId;
             this.score = score;
+            this.missingKeywords = missingKeywords;
         }
-        
+
         @Override
         public int compareTo(SearchResult o) {
-            return Double.compare(o.score, this.score); // descending order
+            return Double.compare(o.score, this.score);
         }
     }
 
