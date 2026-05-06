@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">Search Results — HKUST Search</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/assets/favicon.png" />
+    <link rel="apple-touch-icon" href="/static/assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body class="results-page">
+
+    <!-- ── Top navigation bar ── -->
+    <header class="results-header">
+        <div class="results-header-inner">
+            <a href="/" class="results-brand" aria-label="Home">
+                <img src="/static/assets/hkust-logo.png" alt="HKUST logo" class="brand-logo" />
+                <span class="brand-mark">HKUST</span>
+                <span class="brand-sub">CSE Search</span>
+            </a>
+
+            <form class="results-search-form" id="resultsSearchForm" action="/results" method="get">
+                <div class="search-card compact" role="search">
+                    <span class="search-card-prefix" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </span>
+                    <input type="search" name="q" id="resultsQuery" class="search-input"
+                        placeholder='Search keywords, phrases, or -excluded terms' autocomplete="off"
+                        th:value="${query}" />
+                    <div class="autocomplete-dropdown" id="resultsAutocomplete" hidden></div>
+                    <button type="submit" class="btn-search-round" aria-label="Search">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <!-- ── Active filters bar ── -->
+    <div class="filters-bar" id="filtersBar" hidden>
+        <div class="filters-inner">
+            <span class="filters-label">Active:</span>
+            <div class="filter-chips" id="filterChips"></div>
+            <button type="button" class="filters-keyword-button" id="resultsBrowseKeywords">Browse keywords</button>
+        </div>
+    </div>
+
+    <!-- ── Results area ── -->
+    <main class="results-main">
+
+        <!-- Status line -->
+        <div class="results-meta" id="resultsMeta" aria-live="polite"></div>
+
+        <section class="within-results" id="withinResults" hidden>
+            <label for="withinResultsInput">Search within results</label>
+            <input type="search" id="withinResultsInput" placeholder="Filter title, URL, keywords, or links" autocomplete="off" />
+            <span id="withinResultsCount"></span>
+        </section>
+
+        <!-- Loading state -->
+        <div class="loading-state" id="loadingState" hidden>
+            <div class="spinner" aria-label="Searching…"></div>
+            <p>Searching…</p>
+        </div>
+
+        <!-- Error state -->
+        <div class="error-state" id="errorState" hidden>
+            <p class="error-icon">⚠</p>
+            <p class="error-message" id="errorMessage">An error occurred. Please try again.</p>
+            <a href="/" class="btn-search">Back to search</a>
+        </div>
+
+        <!-- No results state -->
+        <div class="empty-state" id="emptyState" hidden>
+            <p class="empty-icon">🔍</p>
+            <p class="empty-message">No results found for <strong id="emptyQuery"></strong></p>
+            <p class="empty-hint">Try different keywords, remove quotes, or check your spelling.</p>
+            <a href="/" class="btn-search">New search</a>
+        </div>
+
+        <!-- Result list -->
+        <ol class="results-list" id="resultsList" aria-label="Search results"></ol>
+        <div class="within-empty" id="withinEmpty" hidden>No current results match this filter.</div>
+
+        <section class="keyword-browser-panel results-keyword-browser" id="resultsKeywordBrowser" hidden>
+            <div class="keyword-browser-header">
+                <div>
+                    <h2 class="keyword-browser-title">Indexed keywords</h2>
+                    <p class="keyword-browser-subtitle">Browse stemmed keywords and click to add them to the active query.</p>
+                </div>
+                <button type="button" class="keyword-browser-close" data-close-keyword-browser>Close</button>
+            </div>
+            <div class="keyword-browser-toolbar">
+                <input type="search" id="resultsKeywordFilter" class="keyword-browser-filter" placeholder="Filter indexed keywords" autocomplete="off" />
+                <button type="button" class="keyword-browser-clear" id="resultsKeywordClear">Clear query</button>
+            </div>
+            <div class="keyword-browser-selected" id="resultsKeywordSelected" hidden>
+                <span class="keyword-browser-selected-label">Selected:</span>
+                <div class="keyword-browser-selected-chips" id="resultsKeywordSelectedChips"></div>
+            </div>
+            <div class="keyword-browser-list" id="resultsKeywordList" aria-live="polite"></div>
+        </section>
+
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <p>COMP4321 &mdash; Group 32 &mdash; HKUST &copy; 2026</p>
+    </footer>
+
+    <!-- Result card template (cloned by JS) -->
+    <template id="resultCardTemplate">
+        <li class="result-card">
+            <div class="result-score-badge" aria-label="Score"></div>
+            <div class="result-body">
+                <h2 class="result-title">
+                    <a class="result-title-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+                </h2>
+                <a class="result-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+                <p class="result-meta-line"></p>
+                <div class="result-keywords"></div>
+                <div class="result-actions">
+                    <button type="button" class="result-action result-save">Save</button>
+                    <button type="button" class="result-action result-similar">Get similar pages</button>
+                </div>
+
+                <!-- Links collapsible -->
+                <details class="result-links-details" open>
+                    <summary class="result-links-summary">Links</summary>
+                    <div class="result-links-grid">
+                        <div class="links-column">
+                            <h3 class="links-heading">Parent pages</h3>
+                            <ul class="links-list parent-links-list"></ul>
+                        </div>
+                        <div class="links-column">
+                            <h3 class="links-heading">Child pages</h3>
+                            <ul class="links-list child-links-list"></ul>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </li>
+    </template>
+
+    <script src="/static/js/history.js"></script>
+    <script src="/static/js/saved.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script src="/static/js/results.js"></script>
+</body>
+
+</html>
