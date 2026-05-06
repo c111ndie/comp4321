@@ -20,6 +20,8 @@ public class PageMeta implements Serializable {
     public String lastModifiedRfc1123 = "";
     /** Page size in bytes */
     public long sizeBytes;
+    public double maxTermFrequency;
+    public double docNorm;
 
     /** Up to 10 child (out-link) URLs */
     public List<String> childUrls = new ArrayList<>();
@@ -31,4 +33,14 @@ public class PageMeta implements Serializable {
      * Key = stem string, Value = term frequency in the body.
      */
     public Map<String, Integer> topBodyStems = new LinkedHashMap<>();
+
+    public double getMaxTermFrequency() {
+        return maxTermFrequency;
+    }
+
+    public double getNorm() {
+        // TODO: Store this value during indexing
+        // For now, return 1.0 to keep cosine similarity simple
+        return docNorm;
+    }
 }
