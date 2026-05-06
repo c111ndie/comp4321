@@ -1,4 +1,4 @@
 @ECHO OFF
 SETLOCAL
-CD /D "%~dp0spider"
-CALL mvnw.cmd %*
+SET "ROOT_DIR=%~dp0"
+CALL "%ROOT_DIR%spider\mvnw.cmd" %*

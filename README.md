@@ -74,11 +74,13 @@ source ~/.bashrc
 java -version
 ```
 
-If `JAVA_HOME` was not set automatically, set it permanently via PowerShell (run as Administrator):
+If `JAVA_HOME` was not set automatically, find your JDK install path (e.g. `C:\Program Files\Eclipse Adoptium\jdk-11.x.x-hotspot`) and set it permanently via PowerShell (run as Administrator):
 
 ```powershell
-[System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Eclipse Adoptium\jdk-11.*", "Machine")
-[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";%JAVA_HOME%\bin", "Machine")
+$jdkPath = "C:\Program Files\Eclipse Adoptium\jdk-11.x.x-hotspot"   # adjust to your actual folder name
+[System.Environment]::SetEnvironmentVariable("JAVA_HOME", $jdkPath, "Machine")
+$currentPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+[System.Environment]::SetEnvironmentVariable("Path", "$currentPath;$jdkPath\bin", "Machine")
 ```
 
 Then open a new terminal and run `java -version` to confirm.
@@ -256,10 +258,12 @@ Child Link 2
 
 | Problem | Fix |
 |---|---|
-| `JAVA_HOME` not set / `./mvnw` fails | Run `export JAVA_HOME="$(dirname $(dirname $(which java)))"` (macOS/Linux) |
+| `JAVA_HOME` not set / `./mvnw` fails | Run `export JAVA_HOME="$(brew --prefix openjdk@11)"` (macOS) or set `JAVA_HOME` to your JDK installation directory |
 | Port 8080 already in use | Add `--server.port=9090` to the `java -jar` command |
 | "JDBM named objects not found" | Re-run Step 3 (index files are missing or were built by an old version) |
 | Search returns no results | Make sure you ran the spider from the **project root** so the db path `spider/crawl-output/indexDB` is correct |
+| **Windows: `.\mvnw.cmd` fails** with `Could not find or load main class` | Your project folder path contains a space (e.g. `Comp 4321`). Move the project to a path without spaces, e.g. `C:\Users\YourName\comp4321`, then retry. |
+| **All CSS/JS return 404 in browser** | Do **not** open `index.html` directly from the filesystem. Always use `java -jar webapp\target\webapp-1.0.0.jar` first, then go to `http://localhost:8080` in your browser. |
 
 ---
 
