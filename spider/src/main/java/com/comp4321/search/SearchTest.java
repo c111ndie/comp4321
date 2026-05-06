@@ -67,7 +67,7 @@ public class SearchTest {
         String[] testQueries = {
             "the world of computers",
             "computer",
-            "maintain",
+            "hkust",
             "\"hong kong\"",
             "news \"hong kong\"",
             "movi maintain",
@@ -89,7 +89,7 @@ public class SearchTest {
             } else {
                 System.out.print("  Top documents: ");
                 for (Search.SearchResult r : results.stream().limit(10).collect(Collectors.toList())) {
-                    System.out.print(r.docId + "(score=" + String.format("%.4f", r.score) + ") ");
+                    System.out.print(r.docId + "(score=" + String.format("%.4f", r.score) + ", \nmissing=" + r.missingKeywords + ") ");
                 }
                 System.out.println();
             }
