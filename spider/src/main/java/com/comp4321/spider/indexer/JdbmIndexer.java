@@ -228,7 +228,8 @@ public class JdbmIndexer {
                 pos++;
                 continue;
             }
-            // Only index purely alphabetic tokens (skip numbers, "1david", "10moreif", etc.)
+            // Only index purely alphabetic tokens (skip numbers, "1david", "10moreif",
+            // etc.)
             if (!token.matches("[a-zA-Z]+")) {
                 pos++;
                 continue;

@@ -57,8 +57,8 @@ public class RealSearchController {
 
         if (wordIdRec == null || bodyIdRec == null || metaIdRec == null || titleIdRec == null) {
             throw new IllegalStateException(
-                "JDBM named objects not found in '" + dbName + "'. " +
-                "Please run the spider first to build the index.");
+                    "JDBM named objects not found in '" + dbName + "'. " +
+                            "Please run the spider first to build the index.");
         }
 
         wordToWordId = HTree.load(recman, wordIdRec);
@@ -73,7 +73,8 @@ public class RealSearchController {
     @PreDestroy
     public void shutdown() {
         try {
-            if (recman != null) recman.close();
+            if (recman != null)
+                recman.close();
         } catch (IOException e) {
             System.err.println("[RealSearchController] Error closing JDBM: " + e.getMessage());
         }
@@ -100,7 +101,8 @@ public class RealSearchController {
 
         List<MockSearchController.SearchResultItem> items = new ArrayList<>();
 
-        // Collect all query stems (single terms + phrase words) for missing-term detection
+        // Collect all query stems (single terms + phrase words) for missing-term
+        // detection
         List<String> allQueryStems = new ArrayList<>(query.getSingleTerms());
         for (List<String> phrase : query.getPhrases()) {
             allQueryStems.addAll(phrase);
@@ -108,7 +110,8 @@ public class RealSearchController {
         // Remove duplicates while preserving order
         List<String> uniqueQueryStems = allQueryStems.stream().distinct().collect(Collectors.toList());
 
-        // For each query stem, pre-fetch the set of page IDs that contain it (body or title)
+        // For each query stem, pre-fetch the set of page IDs that contain it (body or
+        // title)
         // Key: stem, Value: set of docIds containing that stem
         Map<String, Set<Integer>> stemPageIds = new java.util.HashMap<>();
         if (uniqueQueryStems.size() > 1) {
@@ -116,12 +119,14 @@ public class RealSearchController {
                 Integer wordId = (Integer) wordToWordId.get(stem);
                 Set<Integer> pages = new java.util.HashSet<>();
                 if (wordId != null) {
-                    com.comp4321.spider.indexer.PostingList bodyPl =
-                        (com.comp4321.spider.indexer.PostingList) bodyInvertedIndex.get(wordId);
-                    if (bodyPl != null) pages.addAll(bodyPl.getPageIds());
-                    com.comp4321.spider.indexer.PostingList titlePl =
-                        (com.comp4321.spider.indexer.PostingList) titleInvertedIndex.get(wordId);
-                    if (titlePl != null) pages.addAll(titlePl.getPageIds());
+                    com.comp4321.spider.indexer.PostingList bodyPl = (com.comp4321.spider.indexer.PostingList) bodyInvertedIndex
+                            .get(wordId);
+                    if (bodyPl != null)
+                        pages.addAll(bodyPl.getPageIds());
+                    com.comp4321.spider.indexer.PostingList titlePl = (com.comp4321.spider.indexer.PostingList) titleInvertedIndex
+                            .get(wordId);
+                    if (titlePl != null)
+                        pages.addAll(titlePl.getPageIds());
                 }
                 stemPageIds.put(stem, pages);
             }
@@ -129,15 +134,16 @@ public class RealSearchController {
 
         for (Search.SearchResult r : results.stream().limit(limit).collect(Collectors.toList())) {
             PageMeta meta = (PageMeta) pageMetadata.get(r.docId);
-            if (meta == null) continue;
+            if (meta == null)
+                continue;
             MockSearchController.SearchResultItem item = toResultItem(meta, r.score);
 
             // Compute which query stems are absent from this page (body or title)
             if (uniqueQueryStems.size() > 1) {
                 List<String> missing = uniqueQueryStems.stream()
-                    .filter(stem -> !stemPageIds.getOrDefault(stem, java.util.Collections.emptySet())
-                                                .contains(r.docId))
-                    .collect(Collectors.toList());
+                        .filter(stem -> !stemPageIds.getOrDefault(stem, java.util.Collections.emptySet())
+                                .contains(r.docId))
+                        .collect(Collectors.toList());
                 if (!missing.isEmpty()) {
                     item.setMissingTerms(missing);
                 }
@@ -193,17 +199,21 @@ public class RealSearchController {
                     String lower = w.toLowerCase();
                     if (!stopStem.isStopWord(lower)) {
                         String stem = stopStem.stem(lower);
-                        if (!stem.isEmpty()) stemmedPhrase.add(stem);
+                        if (!stem.isEmpty())
+                            stemmedPhrase.add(stem);
                     }
                 }
-                if (!stemmedPhrase.isEmpty()) phrases.add(stemmedPhrase);
+                if (!stemmedPhrase.isEmpty())
+                    phrases.add(stemmedPhrase);
             } else {
                 // Skip excluded terms (prefixed with -)
-                if (token.startsWith("-")) continue;
+                if (token.startsWith("-"))
+                    continue;
                 String lower = token.toLowerCase();
                 if (!stopStem.isStopWord(lower)) {
                     String stem = stopStem.stem(lower);
-                    if (!stem.isEmpty()) singleTerms.add(stem);
+                    if (!stem.isEmpty())
+                        singleTerms.add(stem);
                 }
             }
         }
@@ -224,7 +234,8 @@ public class RealSearchController {
                 } else {
                     if (current.length() > 0) {
                         for (String part : current.toString().trim().split("\\s+")) {
-                            if (!part.isEmpty()) result.add(part);
+                            if (!part.isEmpty())
+                                result.add(part);
                         }
                         current.setLength(0);
                     }
@@ -240,11 +251,13 @@ public class RealSearchController {
                 // unclosed quote — treat as plain terms
                 String inner = current.toString().replaceFirst("^\"", "");
                 for (String part : inner.trim().split("\\s+")) {
-                    if (!part.isEmpty()) result.add(part);
+                    if (!part.isEmpty())
+                        result.add(part);
                 }
             } else {
                 for (String part : current.toString().trim().split("\\s+")) {
-                    if (!part.isEmpty()) result.add(part);
+                    if (!part.isEmpty())
+                        result.add(part);
                 }
             }
         }
@@ -257,20 +270,20 @@ public class RealSearchController {
         List<MockSearchController.KeywordFreq> keywords = new ArrayList<>();
         int count = 0;
         for (Map.Entry<String, Integer> e : meta.topBodyStems.entrySet()) {
-            if (count >= 5) break;
+            if (count >= 5)
+                break;
             keywords.add(new MockSearchController.KeywordFreq(e.getKey(), e.getValue()));
             count++;
         }
 
         return new MockSearchController.SearchResultItem(
-            score,
-            meta.title.isEmpty() ? meta.url : meta.title,
-            meta.url,
-            meta.lastModifiedRfc1123,
-            meta.sizeBytes,
-            keywords,
-            meta.parentUrls,
-            meta.childUrls
-        );
+                score,
+                meta.title.isEmpty() ? meta.url : meta.title,
+                meta.url,
+                meta.lastModifiedRfc1123,
+                meta.sizeBytes,
+                keywords,
+                meta.parentUrls,
+                meta.childUrls);
     }
 }

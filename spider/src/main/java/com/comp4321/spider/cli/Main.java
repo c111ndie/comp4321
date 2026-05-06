@@ -85,7 +85,7 @@ public final class Main {
         if (html == null || html.isBlank())
             return "";
         // Replace every HTML tag with a space so adjacent element text doesn't merge.
-        // e.g. <td>actor</td><td>and</td> → "actor  and" not "actorand"
+        // e.g. <td>actor</td><td>and</td> → "actor and" not "actorand"
         return html.replaceAll("<[^>]+>", " ");
     }
 
