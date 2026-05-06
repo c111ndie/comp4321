@@ -13,13 +13,14 @@ import java.io.IOException;
 import java.util.*;
 
 public class Search {
-    private static final double TITLE_BOOST = 1000;   // Need to implement
+
 
     private Query query;
     private HTree wordToWordId;         // stem -> wordId
     private HTree bodyInvertedIndex;    // wordId -> PostingList
     private HTree titleInvertedIndex;   // 
     private HTree pageMeta;         // docId -> PageMeta object
+    private double TITLE_BOOST; // boost factor for title matches
 
     // Total number of documents (stored in pageMeta under a special key, e.g. -1)
     private int totalDocuments;
@@ -30,6 +31,7 @@ public class Search {
         this.wordToWordId = wordToWordId;
         this.bodyInvertedIndex = bodyInvertedIndex;
         this.pageMeta = pageMeta;
+        this.TITLE_BOOST = 1.0; // default boost factor for title matches
         // Assume the total number of documents is stored under key -1.
         // If not, compute by iterating over pageMeta keys (excluding -1).
         Integer storedTotal = (Integer) pageMeta.get(-1);
@@ -53,6 +55,31 @@ public class Search {
         this.bodyInvertedIndex = bodyInvertedIndex;
         this.titleInvertedIndex = titleInvertedIndex;
         this.pageMeta = pageMeta;
+        this.TITLE_BOOST = 10000;
+        // Assume the total number of documents is stored under key -1.
+        // If not, compute by iterating over pageMeta keys (excluding -1).
+        Integer storedTotal = (Integer) pageMeta.get(-1);
+        if (storedTotal != null) {
+            this.totalDocuments = storedTotal;
+        } else {
+            // Fallback: count document IDs from pageMeta
+            int count = 0;
+            FastIterator keys = pageMeta.keys();
+            Object key;
+            while ((key = keys.next()) != null) {
+                if (!key.equals(-1)) count++;
+            }
+            this.totalDocuments = count;
+        }
+    }
+    public Search(Query query, HTree wordToWordId, HTree bodyInvertedIndex, HTree titleInvertedIndex, 
+                  HTree pageMeta, double titleBoost) throws IOException {
+        this.query = query;
+        this.wordToWordId = wordToWordId;
+        this.bodyInvertedIndex = bodyInvertedIndex;
+        this.titleInvertedIndex = titleInvertedIndex;
+        this.pageMeta = pageMeta;
+        this.TITLE_BOOST = titleBoost;
         // Assume the total number of documents is stored under key -1.
         // If not, compute by iterating over pageMeta keys (excluding -1).
         Integer storedTotal = (Integer) pageMeta.get(-1);
@@ -101,7 +128,7 @@ public class Search {
             int df = allDocs.size();                 // document frequency
             double idf = computeIdf(df);             // or computeIdf(bodyPl.getDocumentFrequency()) if you prefer
 
-            components.add(new TermComponent(term, bodyPl, titlePl, idf));
+            components.add(new TermComponent(term, bodyPl, titlePl, idf, this.TITLE_BOOST));
         }
 
         // Process phrases
@@ -242,12 +269,14 @@ public class Search {
         private final PostingList titlePl;
         private final double idf;
         private final Set<Integer> docSet;
+        private final double TITLE_BOOST;
 
-        TermComponent(String term, PostingList bodyPl, PostingList titlePl, double idf) {
+        TermComponent(String term, PostingList bodyPl, PostingList titlePl, double idf, double TITLE_BOOST) {
             this.term = term;
             this.bodyPl = bodyPl;
             this.titlePl = titlePl;
             this.idf = idf;
+            this.TITLE_BOOST = TITLE_BOOST;
             // Union of documents that contain the term in body OR title
             Set<Integer> docs = new HashSet<>(bodyPl.getPageIds());
             docs.addAll(titlePl.getPageIds());
