@@ -34,13 +34,29 @@ public class PageMeta implements Serializable {
      */
     public Map<String, Integer> topBodyStems = new LinkedHashMap<>();
 
-    public double getMaxTermFrequency() {
-        return maxTermFrequency;
+    /**
+     * Returns the L2 norm of the term frequency vector for this document.
+     * Used for cosine similarity computation in ranking.
+     */
+    public double getNorm() {
+        double sumSq = 0.0;
+        for (Integer freq : topBodyStems.values()) {
+            sumSq += freq * freq;
+        }
+        return Math.sqrt(sumSq);
     }
 
-    public double getNorm() {
-        // TODO: Store this value during indexing
-        // For now, return 1.0 to keep cosine similarity simple
-        return docNorm;
+    /**
+     * Returns the maximum term frequency in this document.
+     * Used for TF normalization in ranking (term frequency / max term frequency).
+     */
+    public double getMaxTermFrequency() {
+        if (topBodyStems.isEmpty()) {
+            return 1.0;
+        }
+        return topBodyStems.values().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(1);
     }
 }
