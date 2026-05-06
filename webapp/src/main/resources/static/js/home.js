@@ -26,7 +26,12 @@
         selectedWrap: document.getElementById('homeKeywordSelected'),
         selectedChips: document.getElementById('homeKeywordSelectedChips'),
         clearButton: document.getElementById('homeKeywordClear'),
-        queryInput: input
+        searchButton: document.getElementById('homeKeywordSearch'),
+        queryInput: input,
+        onSearch(q) {
+            SearchHistory.push(q);
+            window.location.href = '/results.html?q=' + encodeURIComponent(q);
+        }
     });
 
     function renderSearchDropdown() {

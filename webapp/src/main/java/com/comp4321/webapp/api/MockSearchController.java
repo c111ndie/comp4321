@@ -27,7 +27,7 @@ public class MockSearchController {
 
     @GetMapping("/api/search")
     public SearchResponse search(@RequestParam(name = "q", defaultValue = "") String query,
-                                 @RequestParam(name = "max", defaultValue = "50") int max) {
+            @RequestParam(name = "max", defaultValue = "50") int max) {
         QueryParts parts = parseQuery(query);
         if (parts.isEmpty()) {
             return new SearchResponse(query, 0, Collections.emptyList());
@@ -35,11 +35,11 @@ public class MockSearchController {
 
         int limit = Math.max(1, Math.min(max, 50));
         List<SearchResultItem> matches = PAGES.stream()
-            .map(page -> toSearchResult(page, parts))
-            .filter(item -> item != null)
-            .sorted(Comparator.comparingDouble(SearchResultItem::getScore).reversed()
-                .thenComparing(SearchResultItem::getTitle))
-            .collect(Collectors.toList());
+                .map(page -> toSearchResult(page, parts))
+                .filter(item -> item != null)
+                .sorted(Comparator.comparingDouble(SearchResultItem::getScore).reversed()
+                        .thenComparing(SearchResultItem::getTitle))
+                .collect(Collectors.toList());
 
         List<SearchResultItem> combined = new ArrayList<>(matches);
         combined.addAll(generateSyntheticResults(query, parts, limit - combined.size(), combined));
@@ -82,8 +82,8 @@ public class MockSearchController {
         String title = normalize(page.title);
         String url = normalize(page.url);
         String keywords = page.keywords.stream()
-            .map(keyword -> normalize(keyword.term))
-            .collect(Collectors.joining(" "));
+                .map(keyword -> normalize(keyword.term))
+                .collect(Collectors.joining(" "));
         String combined = title + " " + url + " " + keywords;
 
         for (String excludedTerm : parts.excludedTerms) {
@@ -127,15 +127,14 @@ public class MockSearchController {
 
         double cappedScore = Math.min(score, 0.99);
         return new SearchResultItem(
-            cappedScore,
-            page.title,
-            page.url,
-            page.lastModified,
-            page.sizeBytes,
-            page.keywords,
-            page.parentLinks,
-            page.childLinks
-        );
+                cappedScore,
+                page.title,
+                page.url,
+                page.lastModified,
+                page.sizeBytes,
+                page.keywords,
+                page.parentLinks,
+                page.childLinks);
     }
 
     private QueryParts parseQuery(String query) {
@@ -151,28 +150,28 @@ public class MockSearchController {
         String withoutPhrases = (query == null ? "" : query).replaceAll("\"[^\"]+\"", " ");
         List<String> excludedTerms = new ArrayList<>();
         List<String> terms = Arrays.stream(withoutPhrases.trim().split("\\s+"))
-            .filter(token -> !token.isBlank())
-            .filter(token -> {
-                if (token.startsWith("-") && token.length() > 1) {
-                    excludedTerms.add(token.substring(1));
-                    return false;
-                }
-                return true;
-            })
-            .collect(Collectors.toList());
+                .filter(token -> !token.isBlank())
+                .filter(token -> {
+                    if (token.startsWith("-") && token.length() > 1) {
+                        excludedTerms.add(token.substring(1));
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
 
         return new QueryParts(phrases, terms, excludedTerms);
     }
 
     private List<SearchResultItem> generateSyntheticResults(String query, QueryParts parts, int needed,
-                                                            List<SearchResultItem> existing) {
+            List<SearchResultItem> existing) {
         if (needed <= 0) {
             return Collections.emptyList();
         }
 
         Set<String> usedTitles = existing.stream()
-            .map(SearchResultItem::getTitle)
-            .collect(Collectors.toCollection(HashSet::new));
+                .map(SearchResultItem::getTitle)
+                .collect(Collectors.toCollection(HashSet::new));
 
         List<String> coreTerms = new ArrayList<>();
         coreTerms.addAll(parts.phrases);
@@ -187,21 +186,21 @@ public class MockSearchController {
         List<SearchResultItem> generated = new ArrayList<>();
 
         String[] titleTemplates = {
-            "%s Resource Hub",
-            "HKUST %s Guide",
-            "%s Project Archive",
-            "%s Research Overview",
-            "%s Student Information",
-            "%s Reference Page"
+                "%s Resource Hub",
+                "HKUST %s Guide",
+                "%s Project Archive",
+                "%s Research Overview",
+                "%s Student Information",
+                "%s Reference Page"
         };
 
         String[] pathTemplates = {
-            "resources/%s",
-            "guide/%s",
-            "archive/%s",
-            "research/%s",
-            "student-life/%s",
-            "reference/%s"
+                "resources/%s",
+                "guide/%s",
+                "archive/%s",
+                "research/%s",
+                "student-life/%s",
+                "reference/%s"
         };
 
         for (int i = 0; i < needed; i++) {
@@ -216,15 +215,14 @@ public class MockSearchController {
             double score = Math.max(0.34, 0.78 - (i * 0.07));
 
             generated.add(new SearchResultItem(
-                score,
-                title,
-                url,
-                "Tue, 27 Apr 2026 10:" + String.format("%02d", 10 + i) + ":00 GMT",
-                sizeBytes,
-                generateKeywords(coreTerms, i),
-                generateParentLinks(slug),
-                generateChildLinks(slug, i)
-            ));
+                    score,
+                    title,
+                    url,
+                    "Tue, 27 Apr 2026 10:" + String.format("%02d", 10 + i) + ":00 GMT",
+                    sizeBytes,
+                    generateKeywords(coreTerms, i),
+                    generateParentLinks(slug),
+                    generateChildLinks(slug, i)));
         }
 
         return generated;
@@ -253,19 +251,17 @@ public class MockSearchController {
 
     private List<String> generateParentLinks(String slug) {
         return links(
-            "https://www.cse.ust.hk/",
-            "https://www.cse.ust.hk/resources/",
-            "https://www.cse.ust.hk/topics/" + slug + "/"
-        );
+                "https://www.cse.ust.hk/",
+                "https://www.cse.ust.hk/resources/",
+                "https://www.cse.ust.hk/topics/" + slug + "/");
     }
 
     private List<String> generateChildLinks(String slug, int index) {
         return links(
-            "https://www.cse.ust.hk/" + slug + "/overview.html",
-            "https://www.cse.ust.hk/" + slug + "/details-" + (index + 1) + ".html",
-            "https://www.cse.ust.hk/" + slug + "/examples.html",
-            "https://www.cse.ust.hk/" + slug + "/downloads/" + slug + ".pdf"
-        );
+                "https://www.cse.ust.hk/" + slug + "/overview.html",
+                "https://www.cse.ust.hk/" + slug + "/details-" + (index + 1) + ".html",
+                "https://www.cse.ust.hk/" + slug + "/examples.html",
+                "https://www.cse.ust.hk/" + slug + "/downloads/" + slug + ".pdf");
     }
 
     private String slugify(String value) {
@@ -279,8 +275,9 @@ public class MockSearchController {
             return "Search Topic";
         }
         return Arrays.stream(cleaned.split("\\s+"))
-            .map(word -> word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase(Locale.ROOT))
-            .collect(Collectors.joining(" "));
+                .map(word -> word.isEmpty() ? word
+                        : Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase(Locale.ROOT))
+                .collect(Collectors.joining(" "));
     }
 
     private String removeExcludedTerms(String value) {
@@ -288,8 +285,8 @@ public class MockSearchController {
             return "";
         }
         return Arrays.stream(value.trim().split("\\s+"))
-            .filter(token -> !(token.startsWith("-") && token.length() > 1))
-            .collect(Collectors.joining(" "));
+                .filter(token -> !(token.startsWith("-") && token.length() > 1))
+                .collect(Collectors.joining(" "));
     }
 
     private String normalize(String value) {
@@ -305,15 +302,14 @@ public class MockSearchController {
         }
 
         catalog.addAll(Arrays.asList(
-            "algorithm", "analysi", "artifici", "big data", "blockchain", "cloud",
-            "cluster", "comput", "compress", "crawler", "cybersecur", "data",
-            "databas", "dataset", "deep learn", "design", "engin", "evalu",
-            "fyp", "graph", "hkust", "index", "inform", "intern", "keyword",
-            "learn", "machin", "model", "network", "optim", "page", "poster",
-            "predict", "process", "project", "query", "rank", "recommend",
-            "report", "research", "retriev", "robot", "search", "secur",
-            "stem", "student", "system", "technolog", "visual"
-        ));
+                "algorithm", "analysi", "artifici", "big data", "blockchain", "cloud",
+                "cluster", "comput", "compress", "crawler", "cybersecur", "data",
+                "databas", "dataset", "deep learn", "design", "engin", "evalu",
+                "fyp", "graph", "hkust", "index", "inform", "intern", "keyword",
+                "learn", "machin", "model", "network", "optim", "page", "poster",
+                "predict", "process", "project", "query", "rank", "recommend",
+                "report", "research", "retriev", "robot", "search", "secur",
+                "stem", "student", "system", "technolog", "visual"));
 
         return new ArrayList<>(catalog);
     }
@@ -325,8 +321,8 @@ public class MockSearchController {
         }
 
         String[] suffixes = {
-            "", " system", " model", " analysi", " project", " design",
-            " research", " dataset", " method", " applic", " optim"
+                "", " system", " model", " analysi", " project", " design",
+                " research", " dataset", " method", " applic", " optim"
         };
 
         Set<String> variants = new LinkedHashSet<>();
@@ -343,138 +339,117 @@ public class MockSearchController {
         List<MockPage> pages = new ArrayList<>();
 
         pages.add(new MockPage(
-            "FYP Posters",
-            "https://www.cse.ust.hk/ct/fyp/poster.html",
-            "Thu, 29 Apr 2021 00:00:00 GMT",
-            17524L,
-            keywords(
-                keyword("poster", 19),
-                keyword("fyp", 13),
-                keyword("hkust", 8),
-                keyword("cse", 7),
-                keyword("report", 7)
-            ),
-            links(
-                "https://www.cse.ust.hk/ct/",
-                "https://www.cse.ust.hk/ug/fyp/?fyp_year=2016-2017",
-                "https://www.cse.ust.hk/ug/fyp/?fyp_year=2018-2019",
+                "FYP Posters",
                 "https://www.cse.ust.hk/ct/fyp/poster.html",
-                "https://www.cse.ust.hk/ug/fyp/?fyp_year=2017-2018"
-            ),
-            links(
-                "https://www.cse.ust.hk/ct/fyp/",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
+                "Thu, 29 Apr 2021 00:00:00 GMT",
+                17524L,
+                keywords(
+                        keyword("poster", 19),
+                        keyword("fyp", 13),
+                        keyword("hkust", 8),
+                        keyword("cse", 7),
+                        keyword("report", 7)),
+                links(
+                        "https://www.cse.ust.hk/ct/",
+                        "https://www.cse.ust.hk/ug/fyp/?fyp_year=2016-2017",
+                        "https://www.cse.ust.hk/ug/fyp/?fyp_year=2018-2019",
+                        "https://www.cse.ust.hk/ct/fyp/poster.html",
+                        "https://www.cse.ust.hk/ug/fyp/?fyp_year=2017-2018"),
+                links(
+                        "https://www.cse.ust.hk/ct/fyp/",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/abstract.html",
+                        "http://www.cse.ust.hk/ug/fyp/bestfyp/2013-2014/QIAN1_Poster.pdf",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf")));
+
+        pages.add(new MockPage(
+                "HKUST CSE CT Website",
+                "https://www.cse.ust.hk/ct/",
+                "Thu, 29 Apr 2021 00:00:00 GMT",
+                16086L,
+                keywords(
+                        keyword("ct", 12),
+                        keyword("fyp", 10),
+                        keyword("hkust", 7),
+                        keyword("website", 6),
+                        keyword("help", 5)),
+                links(
+                        "https://www.cse.ust.hk/",
+                        "https://www.ust.hk/"),
+                links(
+                        "https://www.cse.ust.hk/ct/fyp/",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf",
+                        "https://www.cse.ust.hk/ct/fyp/reports/ethics_essay.html",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/conference.html")));
+
+        pages.add(new MockPage(
+                "FYP Report Content Guide",
                 "https://www.cse.ust.hk/ct/fyp/reports/content/abstract.html",
-                "http://www.cse.ust.hk/ug/fyp/bestfyp/2013-2014/QIAN1_Poster.pdf",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf"
-            )
-        ));
+                "Thu, 29 Apr 2021 00:00:00 GMT",
+                11984L,
+                keywords(
+                        keyword("fyp", 11),
+                        keyword("report", 10),
+                        keyword("abstract", 8),
+                        keyword("content", 7),
+                        keyword("poster", 4)),
+                links(
+                        "https://www.cse.ust.hk/ct/fyp/",
+                        "https://www.cse.ust.hk/ct/fyp/poster.html"),
+                links(
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/conference.html",
+                        "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf")));
 
         pages.add(new MockPage(
-            "HKUST CSE CT Website",
-            "https://www.cse.ust.hk/ct/",
-            "Thu, 29 Apr 2021 00:00:00 GMT",
-            16086L,
-            keywords(
-                keyword("ct", 12),
-                keyword("fyp", 10),
-                keyword("hkust", 7),
-                keyword("website", 6),
-                keyword("help", 5)
-            ),
-            links(
+                "HKUST Computer Science and Engineering",
                 "https://www.cse.ust.hk/",
-                "https://www.ust.hk/"
-            ),
-            links(
-                "https://www.cse.ust.hk/ct/fyp/",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf",
-                "https://www.cse.ust.hk/ct/fyp/reports/ethics_essay.html",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/conference.html"
-            )
-        ));
+                "Tue, 26 Apr 2026 16:30:00 GMT",
+                8420L,
+                keywords(
+                        keyword("hkust", 11),
+                        keyword("computer", 10),
+                        keyword("science", 10),
+                        keyword("engineering", 7),
+                        keyword("research", 5)),
+                links("https://www.ust.hk/"),
+                links(
+                        "https://www.cse.ust.hk/pg/",
+                        "https://www.cse.ust.hk/ug/",
+                        "https://www.cse.ust.hk/research/")));
 
         pages.add(new MockPage(
-            "FYP Report Content Guide",
-            "https://www.cse.ust.hk/ct/fyp/reports/content/abstract.html",
-            "Thu, 29 Apr 2021 00:00:00 GMT",
-            11984L,
-            keywords(
-                keyword("fyp", 11),
-                keyword("report", 10),
-                keyword("abstract", 8),
-                keyword("content", 7),
-                keyword("poster", 4)
-            ),
-            links(
-                "https://www.cse.ust.hk/ct/fyp/",
-                "https://www.cse.ust.hk/ct/fyp/poster.html"
-            ),
-            links(
-                "https://www.cse.ust.hk/ct/fyp/reports/content/ieee_style.html",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/conference.html",
-                "https://www.cse.ust.hk/ct/fyp/reports/content/fyp_report_quick_overview.pdf"
-            )
-        ));
+                "Information Technology Services",
+                "https://itso.hkust.edu.hk/",
+                "Fri, 23 Apr 2026 14:55:00 GMT",
+                7310L,
+                keywords(
+                        keyword("information", 9),
+                        keyword("technology", 9),
+                        keyword("services", 6),
+                        keyword("campus", 3),
+                        keyword("support", 3)),
+                links("https://www.ust.hk/"),
+                links(
+                        "https://itso.hkust.edu.hk/services/",
+                        "https://itso.hkust.edu.hk/help/")));
 
         pages.add(new MockPage(
-            "HKUST Computer Science and Engineering",
-            "https://www.cse.ust.hk/",
-            "Tue, 26 Apr 2026 16:30:00 GMT",
-            8420L,
-            keywords(
-                keyword("hkust", 11),
-                keyword("computer", 10),
-                keyword("science", 10),
-                keyword("engineering", 7),
-                keyword("research", 5)
-            ),
-            links("https://www.ust.hk/"),
-            links(
-                "https://www.cse.ust.hk/pg/",
-                "https://www.cse.ust.hk/ug/",
-                "https://www.cse.ust.hk/research/"
-            )
-        ));
-
-        pages.add(new MockPage(
-            "Information Technology Services",
-            "https://itso.hkust.edu.hk/",
-            "Fri, 23 Apr 2026 14:55:00 GMT",
-            7310L,
-            keywords(
-                keyword("information", 9),
-                keyword("technology", 9),
-                keyword("services", 6),
-                keyword("campus", 3),
-                keyword("support", 3)
-            ),
-            links("https://www.ust.hk/"),
-            links(
-                "https://itso.hkust.edu.hk/services/",
-                "https://itso.hkust.edu.hk/help/"
-            )
-        ));
-
-        pages.add(new MockPage(
-            "Hong Kong University Resources",
-            "https://www.ust.hk/about-hkust/",
-            "Thu, 22 Apr 2026 10:20:00 GMT",
-            4688L,
-            keywords(
-                keyword("hong", 7),
-                keyword("kong", 7),
-                keyword("university", 6),
-                keyword("resources", 5),
-                keyword("campus", 4)
-            ),
-            links("https://www.ust.hk/"),
-            links(
-                "https://www.ust.hk/academics/",
-                "https://www.ust.hk/life-hkust/"
-            )
-        ));
+                "Hong Kong University Resources",
+                "https://www.ust.hk/about-hkust/",
+                "Thu, 22 Apr 2026 10:20:00 GMT",
+                4688L,
+                keywords(
+                        keyword("hong", 7),
+                        keyword("kong", 7),
+                        keyword("university", 6),
+                        keyword("resources", 5),
+                        keyword("campus", 4)),
+                links("https://www.ust.hk/"),
+                links(
+                        "https://www.ust.hk/academics/",
+                        "https://www.ust.hk/life-hkust/")));
 
         return pages;
     }
@@ -540,9 +515,10 @@ public class MockSearchController {
         private final List<KeywordFreq> keywords;
         private final List<String> parentLinks;
         private final List<String> childLinks;
+        private List<String> missingTerms = new ArrayList<>();
 
         public SearchResultItem(double score, String title, String url, String lastModified, long sizeBytes,
-                                List<KeywordFreq> keywords, List<String> parentLinks, List<String> childLinks) {
+                List<KeywordFreq> keywords, List<String> parentLinks, List<String> childLinks) {
             this.score = score;
             this.title = title;
             this.url = url;
@@ -551,6 +527,14 @@ public class MockSearchController {
             this.keywords = keywords;
             this.parentLinks = parentLinks;
             this.childLinks = childLinks;
+        }
+
+        public void setMissingTerms(List<String> missingTerms) {
+            this.missingTerms = missingTerms == null ? new ArrayList<>() : missingTerms;
+        }
+
+        public List<String> getMissingTerms() {
+            return missingTerms;
         }
 
         public double getScore() {
@@ -614,7 +598,7 @@ public class MockSearchController {
         private final List<String> childLinks;
 
         private MockPage(String title, String url, String lastModified, long sizeBytes, List<KeywordFreq> keywords,
-                         List<String> parentLinks, List<String> childLinks) {
+                List<String> parentLinks, List<String> childLinks) {
             this.title = title;
             this.url = url;
             this.lastModified = lastModified;

@@ -97,6 +97,9 @@ The web interface is a Spring Boot application in the webapp/ directory.
 It serves a dark-navy/gold-themed search UI on http://localhost:8080
 and exposes a JSON search API at /api/search.
 
+The search engine is backed by the real JDBM index built by the spider.
+You MUST complete Step 2 (crawl) before Step 3 (run server).
+
 All commands below are run from the project root unless stated otherwise.
 
 --------------------------------------------------------------------------------

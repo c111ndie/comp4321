@@ -80,19 +80,13 @@ public final class Main {
 
     // -------------------------------------------------------------------------
 
-    /** Extracts visible plain text from an HTML string using htmlparser. */
+    /** Extracts visible plain text from an HTML string. */
     static String extractBodyText(String html) {
         if (html == null || html.isBlank())
             return "";
-        try {
-            Parser parser = Parser.createParser(html, "UTF-8");
-            TextExtractingVisitor visitor = new TextExtractingVisitor();
-            parser.visitAllNodesWith(visitor);
-            return visitor.getExtractedText();
-        } catch (Exception e) {
-            // Fallback: strip all HTML tags
-            return html.replaceAll("<[^>]+>", " ");
-        }
+        // Replace every HTML tag with a space so adjacent element text doesn't merge.
+        // e.g. <td>actor</td><td>and</td> → "actor and" not "actorand"
+        return html.replaceAll("<[^>]+>", " ");
     }
 
     private static void printUsage() {

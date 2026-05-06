@@ -67,7 +67,8 @@
 
         <section class="within-results" id="withinResults" hidden>
             <label for="withinResultsInput">Search within results</label>
-            <input type="search" id="withinResultsInput" placeholder="Filter title, URL, keywords, or links" autocomplete="off" />
+            <input type="search" id="withinResultsInput" placeholder="Filter title, URL, keywords, or links"
+                autocomplete="off" />
             <span id="withinResultsCount"></span>
         </section>
 
@@ -100,13 +101,16 @@
             <div class="keyword-browser-header">
                 <div>
                     <h2 class="keyword-browser-title">Indexed keywords</h2>
-                    <p class="keyword-browser-subtitle">Browse stemmed keywords and click to add them to the active query.</p>
+                    <p class="keyword-browser-subtitle">Browse stemmed keywords and click to add them to the active
+                        query.</p>
                 </div>
                 <button type="button" class="keyword-browser-close" data-close-keyword-browser>Close</button>
             </div>
             <div class="keyword-browser-toolbar">
-                <input type="search" id="resultsKeywordFilter" class="keyword-browser-filter" placeholder="Filter indexed keywords" autocomplete="off" />
+                <input type="search" id="resultsKeywordFilter" class="keyword-browser-filter"
+                    placeholder="Filter indexed keywords" autocomplete="off" />
                 <button type="button" class="keyword-browser-clear" id="resultsKeywordClear">Clear query</button>
+                <button type="button" class="keyword-browser-search" id="resultsKeywordSearch">Search</button>
             </div>
             <div class="keyword-browser-selected" id="resultsKeywordSelected" hidden>
                 <span class="keyword-browser-selected-label">Selected:</span>
@@ -133,6 +137,7 @@
                 <a class="result-url" href="#" target="_blank" rel="noopener noreferrer"></a>
                 <p class="result-meta-line"></p>
                 <div class="result-keywords"></div>
+                <p class="result-missing" hidden></p>
                 <div class="result-actions">
                     <button type="button" class="result-action result-save">Save</button>
                     <button type="button" class="result-action result-similar">Get similar pages</button>

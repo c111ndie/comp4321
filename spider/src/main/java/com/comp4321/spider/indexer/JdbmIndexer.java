@@ -228,6 +228,18 @@ public class JdbmIndexer {
                 pos++;
                 continue;
             }
+            // Only index purely alphabetic tokens (skip numbers, "1david", "10moreif",
+            // etc.)
+            if (!token.matches("[a-zA-Z]+")) {
+                pos++;
+                continue;
+            }
+            // Skip tokens shorter than 2 or longer than 20 characters
+            // (>20 chars are almost always concatenated words from tag-free HTML)
+            if (token.length() < 2 || token.length() > 20) {
+                pos++;
+                continue;
+            }
             String lower = token.toLowerCase();
             if (!stopStem.isStopWord(lower)) {
                 String stem = stopStem.stem(lower);
