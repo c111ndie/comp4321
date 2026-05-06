@@ -21,8 +21,9 @@ public class SearchTest {
         Long wordIdRec = (Long) recman.getNamedObject("wordToWordId");
         Long bodyIdRec = (Long) recman.getNamedObject("bodyInvertedIndex");
         Long metaIdRec = (Long) recman.getNamedObject("pageMetadata");
+        Long titleIdRec = (Long) recman.getNamedObject("titleInvertedIndex");
 
-        if (wordIdRec == null || bodyIdRec == null || metaIdRec == null) {
+        if (wordIdRec == null || bodyIdRec == null || metaIdRec == null || titleIdRec == null) {
             System.err.println("Named objects not found. Did the indexer store them?");
             System.err.println("Attempting brute-force loading...");
             System.err.println("Unavailable feature. Terminating test.");
@@ -32,6 +33,7 @@ public class SearchTest {
         HTree wordToWordId = HTree.load(recman, wordIdRec);
         HTree bodyInvertedIndex = HTree.load(recman, bodyIdRec);
         HTree pageMetadata = HTree.load(recman, metaIdRec);
+        HTree titleInvertedIndex = HTree.load(recman, titleIdRec);
 
         System.out.println("HTrees loaded successfully.");
 
@@ -54,7 +56,7 @@ public class SearchTest {
                 List<String> terms = new ArrayList<>();
                 terms.add("maintain");
                 Query diagQuery = new Query(terms, new ArrayList<>());
-                Search diagSearch = new Search(diagQuery, wordToWordId, bodyInvertedIndex, pageMetadata);
+                Search diagSearch = new Search(diagQuery, wordToWordId, bodyInvertedIndex, titleInvertedIndex, pageMetadata);
                 List<Search.SearchResult> results = diagSearch.execute();
                 System.out.println("  Search.execute() returned: " + results.stream().map(r -> r.docId).collect(Collectors.toList()));
             } else {
@@ -69,7 +71,8 @@ public class SearchTest {
             "maintain",
             "\"hong kong\"",
             "news \"hong kong\"",
-            "movie"
+            "movi maintain",
+            "movi"              
         };
 
         for (String queryStr : testQueries) {
@@ -79,7 +82,7 @@ public class SearchTest {
             System.out.println("  Single terms: " + query.getSingleTerms());
             System.out.println("  Phrases: " + query.getPhrases());
 
-            Search search = new Search(query, wordToWordId, bodyInvertedIndex, pageMetadata);
+            Search search = new Search(query, wordToWordId, bodyInvertedIndex, titleInvertedIndex, pageMetadata);
 
             List<Search.SearchResult> results = search.execute();
             if (results.isEmpty()) {

@@ -13,11 +13,12 @@ import java.io.IOException;
 import java.util.*;
 
 public class Search {
-    private static final double TITLE_BOOST = 2.0;   // Need to implement
+    private static final double TITLE_BOOST = 1000;   // Need to implement
 
     private Query query;
     private HTree wordToWordId;         // stem -> wordId
     private HTree bodyInvertedIndex;    // wordId -> PostingList
+    private HTree titleInvertedIndex;   // 
     private HTree pageMeta;         // docId -> PageMeta object
 
     // Total number of documents (stored in pageMeta under a special key, e.g. -1)
@@ -28,6 +29,29 @@ public class Search {
         this.query = query;
         this.wordToWordId = wordToWordId;
         this.bodyInvertedIndex = bodyInvertedIndex;
+        this.pageMeta = pageMeta;
+        // Assume the total number of documents is stored under key -1.
+        // If not, compute by iterating over pageMeta keys (excluding -1).
+        Integer storedTotal = (Integer) pageMeta.get(-1);
+        if (storedTotal != null) {
+            this.totalDocuments = storedTotal;
+        } else {
+            // Fallback: count document IDs from pageMeta
+            int count = 0;
+            FastIterator keys = pageMeta.keys();
+            Object key;
+            while ((key = keys.next()) != null) {
+                if (!key.equals(-1)) count++;
+            }
+            this.totalDocuments = count;
+        }
+    }
+    public Search(Query query, HTree wordToWordId, HTree bodyInvertedIndex, HTree titleInvertedIndex, 
+                  HTree pageMeta) throws IOException {
+        this.query = query;
+        this.wordToWordId = wordToWordId;
+        this.bodyInvertedIndex = bodyInvertedIndex;
+        this.titleInvertedIndex = titleInvertedIndex;
         this.pageMeta = pageMeta;
         // Assume the total number of documents is stored under key -1.
         // If not, compute by iterating over pageMeta keys (excluding -1).
@@ -65,10 +89,19 @@ public class Search {
         for (String term : query.getSingleTerms()) {
             Integer wordId = (Integer) wordToWordId.get(term);
             if (wordId == null) continue; // term not in index -> no document can match
-            PostingList pl = (PostingList) bodyInvertedIndex.get(wordId);
-            if (pl == null) continue;
-            double idf = computeIdf(pl.getDocumentFrequency()); // df = number of docs containing term
-            components.add(new TermComponent(term, pl, idf));
+            PostingList bodyPl = (PostingList) bodyInvertedIndex.get(wordId);
+            PostingList titlePl = (PostingList) titleInvertedIndex.get(wordId);
+            if (bodyPl == null && titlePl == null) continue;
+            if (bodyPl == null) bodyPl = EMPTY_POSTING_LIST;
+            if (titlePl == null) titlePl = EMPTY_POSTING_LIST;
+
+            // Compute IDF from the union of documents (optional) or from body only
+            Set<Integer> allDocs = new HashSet<>(bodyPl.getPageIds());
+            allDocs.addAll(titlePl.getPageIds());
+            int df = allDocs.size();                 // document frequency
+            double idf = computeIdf(df);             // or computeIdf(bodyPl.getDocumentFrequency()) if you prefer
+
+            components.add(new TermComponent(term, bodyPl, titlePl, idf));
         }
 
         // Process phrases
@@ -83,13 +116,11 @@ public class Search {
         if (components.isEmpty()) return Collections.emptyList();
 
         // 2. Intersect document sets from all components (AND semantics)
-        Set<Integer> candidates = null;
+        Set<Integer> candidates = new HashSet<>();
         for (QueryComponent comp : components) {
-            Set<Integer> docSet = comp.getDocumentSet();
-            if (candidates == null) candidates = new HashSet<>(docSet);
-            else candidates.retainAll(docSet);
+            candidates.addAll(comp.getDocumentSet());
         }
-        if (candidates == null || candidates.isEmpty()) return Collections.emptyList();
+        if (candidates.isEmpty()) return Collections.emptyList();
 
         // 3. For each candidate document, compute cosine similarity
         Map<Integer, Double> scores = new HashMap<>();
@@ -207,36 +238,41 @@ public class Search {
 
     private class TermComponent implements QueryComponent {
         private final String term;
-        private final PostingList postingList;
+        private final PostingList bodyPl;
+        private final PostingList titlePl;
         private final double idf;
         private final Set<Integer> docSet;
 
-        TermComponent(String term, PostingList pl, double idf) {
+        TermComponent(String term, PostingList bodyPl, PostingList titlePl, double idf) {
             this.term = term;
-            this.postingList = pl;
+            this.bodyPl = bodyPl;
+            this.titlePl = titlePl;
             this.idf = idf;
-            this.docSet = new HashSet<>(pl.getPageIds());
+            // Union of documents that contain the term in body OR title
+            Set<Integer> docs = new HashSet<>(bodyPl.getPageIds());
+            docs.addAll(titlePl.getPageIds());
+            this.docSet = docs;
         }
 
         @Override
-        public Set<Integer> getDocumentSet() {
-            return docSet;
-        }
+        public Set<Integer> getDocumentSet() { return docSet; }
 
         @Override
         public double getDocumentWeight(int docId) throws IOException {
-            if (postingList.getTermFrequency(docId) == 0) return 0.0;
-            int tf = postingList.getTermFrequency(docId); // or postingList.getPositions(docId).size()
+            int bodyTf = bodyPl.getTermFrequency(docId);
+            int titleTf = titlePl.getTermFrequency(docId);
+            if (bodyTf == 0 && titleTf == 0) return 0.0;
+            
             Double maxTf = getMaxTermFrequency(docId);
             if (maxTf == null || maxTf == 0) return 0.0;
-            return (tf / maxTf) * idf;
+            
+            double bodyWeight = (bodyTf / maxTf) * idf;
+            double titleWeight = TITLE_BOOST * (titleTf / maxTf) * idf;
+            return bodyWeight + titleWeight;
         }
 
         @Override
-        public double getQueryWeight() {
-            // query term appears once, max tf in query = 1
-            return idf;
-        }
+        public double getQueryWeight() { return idf; }
     }
 
     private class PhraseComponent implements QueryComponent {
@@ -315,4 +351,12 @@ public class Search {
             return Double.compare(o.score, this.score); // descending order
         }
     }
+
+    private static final PostingList EMPTY_POSTING_LIST = new PostingList() {
+        @Override public Set<Integer> getPageIds() { return Collections.emptySet(); }
+        @Override public int getTermFrequency(int docId) { return 0; }
+        @Override public List<Integer> getPositions(int docId) { return Collections.emptyList(); }
+        @Override public int getDocumentFrequency() { return 0; }
+        // add other abstract methods if any
+    };
 }
