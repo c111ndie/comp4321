@@ -4,7 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.comp4321</groupId>
+    <parent>
+        <groupId>com.comp4321</groupId>
+        <artifactId>comp4321-root</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>spider</artifactId>
     <version>1.0.0</version>
     <name>comp4321-spider</name>
