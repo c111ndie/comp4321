@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class Search {
+    private static final double TITLE_BOOST = 2.0;   // Need to implement
+
     private Query query;
     private HTree wordToWordId;         // stem -> wordId
     private HTree bodyInvertedIndex;    // wordId -> PostingList

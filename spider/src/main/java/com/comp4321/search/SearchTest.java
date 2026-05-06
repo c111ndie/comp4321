@@ -55,8 +55,8 @@ public class SearchTest {
                 terms.add("maintain");
                 Query diagQuery = new Query(terms, new ArrayList<>());
                 Search diagSearch = new Search(diagQuery, wordToWordId, bodyInvertedIndex, pageMetadata);
-                List<Integer> results = diagSearch.execute();
-                System.out.println("  Search.execute() returned: " + results);
+                List<Search.SearchResult> results = diagSearch.execute();
+                System.out.println("  Search.execute() returned: " + results.stream().map(r -> r.docId).collect(Collectors.toList()));
             } else {
                 System.out.println("  'maintain' not found in wordToWordId");
             }
@@ -68,7 +68,8 @@ public class SearchTest {
             "computer",
             "maintain",
             "\"hong kong\"",
-            "news \"hong kong\""
+            "news \"hong kong\"",
+            "movie"
         };
 
         for (String queryStr : testQueries) {
@@ -79,8 +80,8 @@ public class SearchTest {
             System.out.println("  Phrases: " + query.getPhrases());
 
             Search search = new Search(query, wordToWordId, bodyInvertedIndex, pageMetadata);
-            List<Integer> results = search.execute();
 
+            List<Search.SearchResult> results = search.execute();
             if (results.isEmpty()) {
                 System.out.println("  No results.");
             } else {
