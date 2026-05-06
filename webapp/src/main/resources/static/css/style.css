@@ -244,13 +244,6 @@ kbd {
     gap: 1.6rem;
 }
 
-.home-page:has(#homeKeywordBrowser:not([hidden])) .hero {
-    flex: 0;
-    justify-content: flex-start;
-    padding: 1.5rem 1.5rem 1.8rem;
-    gap: 1.05rem;
-}
-
 .hero-title {
     font-family: var(--font-brand);
     font-size: clamp(2.35rem, 4.6vw, 3.65rem);
@@ -289,6 +282,7 @@ kbd {
     border: 1px solid rgba(0,0,0,.07);
     border-radius: 20px;
     padding: 7px 7px 7px 20px;
+    box-shadow: 0 14px 36px rgba(13, 27, 62, .12);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -563,15 +557,11 @@ kbd {
 .keyword-browser-panel {
     width: 100%;
     max-width: 920px;
-    margin: 1.25rem auto 2.5rem;
+    margin: -1.5rem auto 2.5rem;
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 1.1rem 1.1rem 1rem;
-}
-
-.home-page:has(#homeKeywordBrowser:not([hidden])) .keyword-browser-panel {
-    margin-top: 0;
 }
 
 .results-keyword-browser {
@@ -1023,7 +1013,7 @@ kbd {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: .7rem;
+    gap: .5rem;
     counter-reset: result-counter;
 }
 
@@ -1031,10 +1021,10 @@ kbd {
     background: var(--white);
     border: 1px solid var(--border);
     border-left: 5px solid transparent;
-    border-radius: 14px;
-    padding: .85rem .95rem .8rem .85rem;
+    border-radius: 12px;
+    padding: .68rem .82rem .62rem .72rem;
     display: flex;
-    gap: .75rem;
+    gap: .65rem;
     transition: background .15s, border-left-color .15s, transform .15s;
 }
 
@@ -1070,14 +1060,14 @@ kbd {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: .12rem;
+    gap: .06rem;
 }
 
 .result-title {
     font-family: var(--font-ui);
-    font-size: 1.35rem;
+    font-size: 1.14rem;
     font-weight: 600;
-    line-height: 1.18;
+    line-height: 1.16;
 }
 
 .result-title-link {
@@ -1091,7 +1081,7 @@ kbd {
 }
 
 .result-url {
-    font-size: .86rem;
+    font-size: .8rem;
     color: #1680d3;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1106,7 +1096,7 @@ kbd {
 }
 
 .result-meta-line {
-    font-size: .82rem;
+    font-size: .76rem;
     color: #7b838f;
     font-weight: 400;
 }
@@ -1114,15 +1104,15 @@ kbd {
 .result-keywords {
     display: flex;
     flex-wrap: wrap;
-    gap: .3rem;
-    margin-top: .2rem;
+    gap: .24rem;
+    margin-top: .12rem;
 }
 
 .result-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: .35rem;
-    margin-top: .38rem;
+    gap: .28rem;
+    margin-top: .22rem;
 }
 
 .result-action {
@@ -1130,8 +1120,8 @@ kbd {
     background: var(--white);
     color: var(--navy);
     border-radius: 999px;
-    padding: .28rem .62rem;
-    font-size: .72rem;
+    padding: .22rem .54rem;
+    font-size: .68rem;
     font-weight: 700;
     transition: border-color .15s, color .15s, background .15s;
 }
@@ -1154,8 +1144,8 @@ kbd {
     background: #4c5560;
     color: var(--white);
     border-radius: 6px;
-    padding: .18rem .42rem;
-    font-size: .72rem;
+    padding: .14rem .36rem;
+    font-size: .68rem;
     font-weight: 600;
 }
 
@@ -1169,13 +1159,13 @@ kbd {
 
 /* ── Links collapsible ───────────────────────────────────── */
 .result-links-details {
-    margin-top: .45rem;
+    margin-top: .3rem;
     border-top: 1px solid var(--border);
-    padding-top: .5rem;
+    padding-top: .36rem;
 }
 
 .result-links-summary {
-    font-size: .78rem;
+    font-size: .72rem;
     font-weight: 700;
     color: var(--text-secondary);
     cursor: pointer;
@@ -1204,8 +1194,8 @@ details[open] .result-links-summary::before {
 .result-links-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: .42rem;
+    gap: .75rem;
+    margin-top: .28rem;
 }
 
 @media (max-width: 520px) {
@@ -1215,10 +1205,10 @@ details[open] .result-links-summary::before {
 }
 
 .links-heading {
-    font-size: .78rem;
+    font-size: .72rem;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-bottom: .3rem;
+    margin-bottom: .18rem;
 }
 
 .links-list {
@@ -1226,7 +1216,7 @@ details[open] .result-links-summary::before {
     padding-left: 1.3rem;
     display: flex;
     flex-direction: column;
-    gap: .22rem;
+    gap: .12rem;
 }
 
 .links-list li {
@@ -1236,7 +1226,7 @@ details[open] .result-links-summary::before {
 }
 
 .links-list a {
-    font-size: .8rem;
+    font-size: .74rem;
     color: #3d8fd6;
 }
 
