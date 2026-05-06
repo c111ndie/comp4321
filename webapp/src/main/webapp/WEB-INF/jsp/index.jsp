@@ -1,0 +1,120 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HKUST Search Engine</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/assets/favicon.png" />
+    <link rel="apple-touch-icon" href="/static/assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+
+<body class="home-page">
+
+    <!-- ── Header ── -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="brand-lockup">
+                <img src="/static/assets/hkust-logo.png" alt="HKUST logo" class="brand-logo" />
+                <div class="brand-copy">
+                    <span class="brand-mark">HKUST</span>
+                    <span class="brand-sub">COMP4321 Web Corpus &middot; Group 32</span>
+                </div>
+            </div>
+            <div class="saved-menu">
+                <button type="button" class="saved-toggle" id="savedToggle" aria-label="Saved results" aria-expanded="false">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.1 8.3 22 9.3 17 14.2 18.2 21 12 17.8 5.8 21 7 14.2 2 9.3 8.9 8.3 12 2" />
+                    </svg>
+                    <span class="saved-count" id="savedCount" hidden>0</span>
+                </button>
+                <section class="saved-popover" id="savedSection" hidden>
+                    <div class="history-header">
+                        <h2 class="history-title">Saved results</h2>
+                        <button class="history-clear" id="clearSaved">Clear</button>
+                    </div>
+                    <ul class="saved-list" id="savedList"></ul>
+                    <p class="saved-empty" id="savedEmpty">No saved results yet.</p>
+                </section>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Hero search section ── -->
+    <main class="hero">
+        <h1 class="hero-title">What are you looking for?</h1>
+        <div class="hero-rule" aria-hidden="true"></div>
+
+        <form class="search-card" id="homeSearchForm" action="/results" method="get" role="search">
+            <span class="search-card-prefix" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </span>
+            <input type="search" name="q" id="homeQuery" class="search-input"
+                placeholder='Search keywords or use &quot;quotes&quot; for phrases'
+                autocomplete="off" autofocus />
+            <div class="autocomplete-dropdown recent-dropdown" id="homeRecentDropdown" hidden></div>
+            <button type="submit" class="btn-search-round" aria-label="Search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </button>
+        </form>
+
+        <!-- Tips -->
+        <ul class="search-tips">
+            <li><kbd>"hong kong"</kbd> — exact phrase</li>
+            <li><kbd>university science</kbd> — multiple keywords</li>
+            <li><kbd>university -private</kbd> — exclude a term</li>
+            <li><kbd>"computer science" hkust</kbd> — phrase plus keyword</li>
+        </ul>
+
+        <div class="keyword-browser-launch">
+            <button type="button" class="keyword-browser-button" id="homeBrowseKeywords">Browse indexed keywords</button>
+            <p class="keyword-browser-copy">Browse stemmed indexed terms, click the ones you want, then search.</p>
+        </div>
+
+    </main>
+
+    <section class="keyword-browser-panel" id="homeKeywordBrowser" hidden>
+        <div class="keyword-browser-header">
+            <div>
+                <h2 class="keyword-browser-title">Indexed keywords</h2>
+                <p class="keyword-browser-subtitle">Select stemmed keywords from the index and build a vector-space query.</p>
+            </div>
+            <button type="button" class="keyword-browser-close" data-close-keyword-browser>Close</button>
+        </div>
+        <div class="keyword-browser-toolbar">
+            <input type="search" id="homeKeywordFilter" class="keyword-browser-filter" placeholder="Filter indexed keywords" autocomplete="off" />
+            <button type="button" class="keyword-browser-clear" id="homeKeywordClear">Clear query</button>
+        </div>
+        <div class="keyword-browser-selected" id="homeKeywordSelected" hidden>
+            <span class="keyword-browser-selected-label">Selected:</span>
+            <div class="keyword-browser-selected-chips" id="homeKeywordSelectedChips"></div>
+        </div>
+        <div class="keyword-browser-list" id="homeKeywordList" aria-live="polite"></div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <p>COMP4321 &mdash; Group 32 &mdash; HKUST &copy; 2026</p>
+    </footer>
+
+    <script src="/static/js/history.js"></script>
+    <script src="/static/js/saved.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+    <script src="/static/js/home.js"></script>
+</body>
+
+</html>
