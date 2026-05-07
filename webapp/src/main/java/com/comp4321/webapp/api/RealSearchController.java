@@ -19,6 +19,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,8 @@ public class RealSearchController {
 
         Search search = new Search(query, wordToWordId, bodyInvertedIndex, titleInvertedIndex, pageMetadata);
         List<Search.SearchResult> results = search.execute();
+        results.sort(Comparator.comparingDouble((Search.SearchResult r) -> r.score).reversed()
+                .thenComparingInt(r -> r.docId));
 
         List<MockSearchController.SearchResultItem> items = new ArrayList<>();
 
@@ -151,6 +154,9 @@ public class RealSearchController {
 
             items.add(item);
         }
+        items.sort(Comparator.comparingDouble(MockSearchController.SearchResultItem::getScore).reversed()
+                .thenComparing(MockSearchController.SearchResultItem::getTitle)
+                .thenComparing(MockSearchController.SearchResultItem::getUrl));
 
         return new MockSearchController.SearchResponse(queryStr, items.size(), items);
     }
