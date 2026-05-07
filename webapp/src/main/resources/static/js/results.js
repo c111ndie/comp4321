@@ -372,9 +372,8 @@
 
     function formatScore(score) {
         const numeric = Number(score);
-        if (!Number.isFinite(numeric)) return '0.0';
-        if (numeric >= 0 && numeric <= 1) return (numeric * 100).toFixed(1);
-        return numeric.toFixed(1);
+        if (!Number.isFinite(numeric)) return '0.000';
+        return numeric.toFixed(3);
     }
 
     function formatKeywordChip(entry) {
@@ -404,7 +403,10 @@
             : Array.isArray(data?.items)
                 ? data.items
                 : [];
-        const results = rawResults.map(normalizeResult).filter(r => r.url);
+        const results = rawResults
+            .map(normalizeResult)
+            .filter(r => r.url)
+            .sort(compareResultsByScore);
         const totalResults = firstFinite(
             data?.totalResults,
             data?.total,
@@ -431,6 +433,18 @@
             parentLinks: normalizeLinks(raw?.parentLinks, raw?.parents, raw?.parentUrls),
             childLinks: normalizeLinks(raw?.childLinks, raw?.children, raw?.childUrls)
         };
+    }
+
+    function compareResultsByScore(a, b) {
+        const scoreDelta = b.score - a.score;
+        if (scoreDelta !== 0) {
+            return scoreDelta;
+        }
+        const titleDelta = a.title.localeCompare(b.title);
+        if (titleDelta !== 0) {
+            return titleDelta;
+        }
+        return a.url.localeCompare(b.url);
     }
 
     function normalizeKeywords(raw) {

@@ -15,7 +15,7 @@ public class PageController {
     /**
      * Serves the home/index page.
      */
-    @GetMapping({"/", "/index", "/index.html", "/index.jsp"})
+    @GetMapping({ "/", "/index", "/index.html", "/index.jsp" })
     public String index(Model model) {
         model.addAttribute("pageTitle", "HKUST Search Engine");
         return "index";
@@ -28,7 +28,7 @@ public class PageController {
      * @param page  the page number (1-indexed, default 1)
      * @param model the Spring model to pass data to the view
      */
-    @GetMapping({"/results", "/results.html", "/results.jsp"})
+    @GetMapping({ "/results", "/results.html", "/results.jsp" })
     public String results(
             @RequestParam(name = "q", defaultValue = "") String query,
             @RequestParam(name = "page", defaultValue = "1") int page,

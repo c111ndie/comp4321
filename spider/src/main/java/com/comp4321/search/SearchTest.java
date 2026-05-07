@@ -15,7 +15,7 @@ import java.util.*;
 public class SearchTest {
 
     public static void main(String[] args) throws IOException {
-        String dbName = "indexDB";  
+        String dbName = "crawl-output/indexDB";
         RecordManager recman = RecordManagerFactory.createRecordManager(dbName);
 
         Long wordIdRec = (Long) recman.getNamedObject("wordToWordId");
