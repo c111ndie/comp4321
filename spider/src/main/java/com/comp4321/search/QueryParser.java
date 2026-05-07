@@ -13,9 +13,15 @@ import java.util.*;
 
 public class QueryParser {
         private final StopStem stopStem;
+        private final HTree wordToWordId;
 
         public QueryParser(StopStem stopStem) {
+            this(stopStem, null);
+        }
+
+        public QueryParser(StopStem stopStem, HTree wordToWordId) {
             this.stopStem = stopStem;
+            this.wordToWordId = wordToWordId;
         }
 
         public Query parse(String rawQuery) {
@@ -32,7 +38,7 @@ public class QueryParser {
                         String lower = w.toLowerCase();
                         if (!stopStem.isStopWord(lower)) {
                             //if (!lower.isEmpty()) stemmedPhrase.add(lower);  // use original word, not stem
-                            String stem = stopStem.stem(lower);
+                            String stem = normalizeQueryTerm(lower);
                             if (!stem.isEmpty()) stemmedPhrase.add(stem);
                         }
                     }
@@ -41,12 +47,25 @@ public class QueryParser {
                     String lower = token.toLowerCase();
                     if (!stopStem.isStopWord(lower)) {
                         //if (!lower.isEmpty()) singleTerms.add(lower);  // use original word, not stem
-                        String stem = stopStem.stem(lower);
+                        String stem = normalizeQueryTerm(lower);
                         if (!stem.isEmpty()) singleTerms.add(stem);
                     }
                 }
             }
             return new Query(singleTerms, phrases);
+        }
+
+        private String normalizeQueryTerm(String lower) {
+            if (wordToWordId != null) {
+                try {
+                    if (wordToWordId.get(lower) != null) {
+                        return lower;
+                    }
+                } catch (IOException ignored) {
+                    // Fall back to normal stemming if the index lookup fails.
+                }
+            }
+            return stopStem.stem(lower);
         }
 
         private List<String> tokenizePreserveQuotes(String text) {

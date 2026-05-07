@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,6 +50,8 @@ public class RealSearchController {
 
     @PostConstruct
     public void init() throws IOException {
+        dbName = resolveDbName(dbName);
+        stopwordsPath = resolveFilePath(stopwordsPath);
         recman = RecordManagerFactory.createRecordManager(dbName);
 
         Long wordIdRec = recman.getNamedObject("wordToWordId");
@@ -69,6 +72,28 @@ public class RealSearchController {
 
         stopStem = new StopStem(stopwordsPath);
         System.out.println("[RealSearchController] JDBM index loaded from: " + dbName);
+    }
+
+    private String resolveDbName(String configuredName) {
+        if (new File(configuredName + ".db").exists()) {
+            return configuredName;
+        }
+        String parentRelative = "../" + configuredName;
+        if (new File(parentRelative + ".db").exists()) {
+            return parentRelative;
+        }
+        return configuredName;
+    }
+
+    private String resolveFilePath(String configuredPath) {
+        if (new File(configuredPath).exists()) {
+            return configuredPath;
+        }
+        String parentRelative = "../" + configuredPath;
+        if (new File(parentRelative).exists()) {
+            return parentRelative;
+        }
+        return configuredPath;
     }
 
     @PreDestroy
@@ -204,7 +229,7 @@ public class RealSearchController {
                 for (String w : words) {
                     String lower = w.toLowerCase();
                     if (!stopStem.isStopWord(lower)) {
-                        String stem = stopStem.stem(lower);
+                        String stem = normalizeQueryTerm(lower);
                         if (!stem.isEmpty())
                             stemmedPhrase.add(stem);
                     }
@@ -217,13 +242,24 @@ public class RealSearchController {
                     continue;
                 String lower = token.toLowerCase();
                 if (!stopStem.isStopWord(lower)) {
-                    String stem = stopStem.stem(lower);
+                    String stem = normalizeQueryTerm(lower);
                     if (!stem.isEmpty())
                         singleTerms.add(stem);
                 }
             }
         }
         return new Query(singleTerms, phrases);
+    }
+
+    private String normalizeQueryTerm(String lower) {
+        try {
+            if (wordToWordId.get(lower) != null) {
+                return lower;
+            }
+        } catch (IOException ignored) {
+            // Fall back to normal stemming if the index lookup fails.
+        }
+        return stopStem.stem(lower);
     }
 
     private List<String> tokenizePreserveQuotes(String text) {
