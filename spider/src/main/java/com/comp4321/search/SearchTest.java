@@ -50,7 +50,7 @@ public class SearchTest {
         String stopwordsFile = "stopwords.txt";
         StopStem stopStem;
         stopStem = new StopStem(stopwordsFile);
-        QueryParser parser = new QueryParser(stopStem);
+        QueryParser parser = new QueryParser(stopStem, wordToWordId);
 
         // Printing for debug purposes
         if (false)

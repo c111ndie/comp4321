@@ -133,11 +133,14 @@ public class Search {
 
         // Process phrases
         for (List<String> phraseWords : query.getPhrases()) {
-            // Compute the posting list and phrase frequency for the exact phrase
             PhraseData phraseData = computePhraseData(phraseWords);
             if (phraseData == null) continue; // unknown word or no documents
-            double idf = computeIdf(phraseData.postingList.getDocumentFrequency());
-            components.add(new PhraseComponent(phraseWords, phraseData, idf));
+            // Compute IDF based on union of documents containing the phrase in body or title
+            Set<Integer> allDocs = new HashSet<>(phraseData.bodyPostingList.getPageIds());
+            allDocs.addAll(phraseData.titlePostingList.getPageIds());
+            int df = allDocs.size();
+            double idf = computeIdf(df);
+            components.add(new PhraseComponent(phraseWords, phraseData, idf, TITLE_BOOST));
         }
 
         if (components.isEmpty()) return Collections.emptyList();
@@ -224,30 +227,45 @@ public class Search {
      * Returns null if any word in the phrase is missing from the dictionary.
      */
     private PhraseData computePhraseData(List<String> phraseWords) throws IOException {
-        // Map each word to its wordId and posting list
+        // Map each word to its wordId and posting lists (both body and title)
         List<Integer> wordIds = new ArrayList<>();
-        List<PostingList> postingLists = new ArrayList<>();
+        List<PostingList> bodyPostingLists = new ArrayList<>();
+        List<PostingList> titlePostingLists = new ArrayList<>();
         for (String word : phraseWords) {
             Integer wid = (Integer) wordToWordId.get(word);
             if (wid == null) return null;
-            PostingList pl = (PostingList) bodyInvertedIndex.get(wid);
-            if (pl == null) return null;
+            PostingList bodyPl = (PostingList) bodyInvertedIndex.get(wid);
+            PostingList titlePl = (PostingList) titleInvertedIndex.get(wid);
+            if (bodyPl == null && titlePl == null) return null;
             wordIds.add(wid);
-            postingLists.add(pl);
+            bodyPostingLists.add(bodyPl != null ? bodyPl : EMPTY_POSTING_LIST);
+            titlePostingLists.add(titlePl != null ? titlePl : EMPTY_POSTING_LIST);
         }
 
-        // Intersect documents that contain all words (necessary for phrase)
-        Set<Integer> docsWithAllWords = new HashSet<>(postingLists.get(0).getPageIds());
+        // Compute for body
+        Map<Integer, Integer> bodyFreq = computePhraseFreqForField(bodyPostingLists);
+        // Compute for title
+        Map<Integer, Integer> titleFreq = computePhraseFreqForField(titlePostingLists);
+        
+        // Build PhrasePostingList objects
+        List<Integer> bodyDocs = new ArrayList<>(bodyFreq.keySet());
+        PhrasePostingList bodyPhrasePl = new PhrasePostingList(bodyDocs, bodyFreq);
+        List<Integer> titleDocs = new ArrayList<>(titleFreq.keySet());
+        PhrasePostingList titlePhrasePl = new PhrasePostingList(titleDocs, titleFreq);
+        
+        return new PhraseData(bodyPhrasePl, bodyFreq, titlePhrasePl, titleFreq);
+    }
+
+    private Map<Integer, Integer> computePhraseFreqForField(List<PostingList> postingLists) {
+        // Intersect documents containing all words
+        Set<Integer> docsWithAll = new HashSet<>(postingLists.get(0).getPageIds());
         for (int i = 1; i < postingLists.size(); i++) {
-            docsWithAllWords.retainAll(postingLists.get(i).getPageIds());
+            docsWithAll.retainAll(postingLists.get(i).getPageIds());
         }
-
-        // For each document, compute phrase frequency (consecutive occurrences)
         Map<Integer, Integer> phraseFreq = new HashMap<>();
-        for (int docId : docsWithAllWords) {
+        for (int docId : docsWithAll) {
             List<Integer> firstPositions = postingLists.get(0).getPositions(docId);
             int count = 0;
-            // For each occurrence of the first word, check if the next words follow immediately
             for (int pos : firstPositions) {
                 boolean fullMatch = true;
                 for (int i = 1; i < postingLists.size(); i++) {
@@ -259,15 +277,9 @@ public class Search {
                 }
                 if (fullMatch) count++;
             }
-            if (count > 0) {
-                phraseFreq.put(docId, count);
-            }
+            if (count > 0) phraseFreq.put(docId, count);
         }
-
-        // Build a custom PostingList-like object for the phrase
-        List<Integer> phraseDocs = new ArrayList<>(phraseFreq.keySet());
-        PhrasePostingList phrasePL = new PhrasePostingList(phraseDocs, phraseFreq);
-        return new PhraseData(phrasePL, phraseFreq);
+        return phraseFreq;
     }
 
     // ---------- Inner classes to represent query components ----------
@@ -329,46 +341,57 @@ public class Search {
         private final PhraseData phraseData;
         private final double idf;
         private final Set<Integer> docSet;
+        private final double TITLE_BOOST;
 
-        PhraseComponent(List<String> words, PhraseData data, double idf) {
+        PhraseComponent(List<String> words, PhraseData data, double idf, double titleBoost) {
             this.words = words;
             this.phraseData = data;
             this.idf = idf;
-            this.docSet = new HashSet<>(data.postingList.getPageIds());
+            this.TITLE_BOOST = titleBoost;
+            Set<Integer> allDocs = new HashSet<>(data.bodyPostingList.getPageIds());
+            allDocs.addAll(data.titlePostingList.getPageIds());
+            this.docSet = allDocs;
         }
 
         @Override
-        public Set<Integer> getDocumentSet() {
-            return docSet;
+        public Set<Integer> getDocumentSet() { 
+            Set<Integer> all = new HashSet<>(phraseData.bodyPostingList.getPageIds());
+            all.addAll(phraseData.titlePostingList.getPageIds());
+            return all;
         }
 
         @Override
         public double getDocumentWeight(int docId) throws IOException {
-            Integer phraseFreq = phraseData.phraseFrequency.get(docId);
-            if (phraseFreq == null) return 0.0;
+            int bodyFreq = phraseData.bodyFrequency.getOrDefault(docId, 0);
+            int titleFreq = phraseData.titleFrequency.getOrDefault(docId, 0);
+            if (bodyFreq == 0 && titleFreq == 0) return 0.0;
             Double maxTf = getMaxTermFrequency(docId);
             if (maxTf == null || maxTf == 0) return 0.0;
-            return (phraseFreq / maxTf) * idf;
+            double bodyWeight = (bodyFreq / maxTf) * idf;
+            double titleWeight = TITLE_BOOST * (titleFreq / maxTf) * idf;
+            return bodyWeight + titleWeight;
         }
 
         @Override
-        public double getQueryWeight() {
-            // phrase appears once in the query
-            return idf;
-        }
+        public double getQueryWeight() { return idf; }
+
         @Override
-        public String getDisplayText() {
-            return String.join(" ", words);   // e.g., "hong kong"
-        }
+        public String getDisplayText() { return String.join(" ", words); }
     }
 
     // Simple data container for phrase results
     private static class PhraseData {
-        final PhrasePostingList postingList;
-        final Map<Integer, Integer> phraseFrequency;  // docId -> occurrence count
-        PhraseData(PhrasePostingList pl, Map<Integer, Integer> freq) {
-            this.postingList = pl;
-            this.phraseFrequency = freq;
+        final PhrasePostingList bodyPostingList;
+        final PhrasePostingList titlePostingList;
+        final Map<Integer, Integer> bodyFrequency;
+        final Map<Integer, Integer> titleFrequency;
+        
+        PhraseData(PhrasePostingList bodyPl, Map<Integer, Integer> bodyFreq,
+                PhrasePostingList titlePl, Map<Integer, Integer> titleFreq) {
+            this.bodyPostingList = bodyPl;
+            this.titlePostingList = titlePl;
+            this.bodyFrequency = bodyFreq;
+            this.titleFrequency = titleFreq;
         }
     }
 
