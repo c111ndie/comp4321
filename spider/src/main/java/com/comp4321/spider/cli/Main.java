@@ -45,10 +45,12 @@ public final class Main {
         spider.crawl();
         PageStore store = spider.getLastStore();
 
-        System.out.println("Crawl complete. Indexed " + store.pageCount() + " pages. Starting JDBM indexing...");
+        System.out.println("\nCrawl complete. Indexed " + store.pageCount() + " pages. Starting JDBM indexing...");
 
         // --- Index into JDBM ---
         JdbmIndexer indexer = new JdbmIndexer(dbName, stopwords);
+        int pageCount = store.pageCount();
+        int processedThisRun = 0;
         for (PageRecord page : store.pagesByIdAscending().values()) {
             if (!page.isHtml)
                 continue;
@@ -73,9 +75,11 @@ public final class Main {
                     page.sizeBytes,
                     childUrls,
                     parentUrls);
+            System.out.print("\rIndexed pages: " + ++processedThisRun + " / " + pageCount);
+            System.out.flush();
         }
         indexer.close();
-        System.out.println("JDBM indexing complete. Database: " + dbName);
+        System.out.println("\nJDBM indexing complete. Database: " + dbName);
     }
 
     // -------------------------------------------------------------------------
