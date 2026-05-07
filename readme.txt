@@ -115,14 +115,14 @@ STEP 2 — Crawl and index pages
 
 macOS / Linux:
   java -jar spider/target/spider-1.0.0.jar \
-    --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-    --max-pages 30 \
+    --seed https://hitcslj.github.io/TestPages/testpage.htm \
+    --max-pages 300 \
     --out spider/crawl-output \
     --db-name spider/crawl-output/indexDB \
     --stopwords spider/src/main/resources/stopwords.txt
 
 Windows:
-  java -jar spider\target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
+  java -jar spider\target\spider-1.0.0.jar --seed https://hitcslj.github.io/TestPages/testpage.htm --max-pages 300 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
 
 This produces: spider/crawl-output/indexDB.db  (the JDBM database)
 

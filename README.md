@@ -148,13 +148,11 @@ java -jar spider\target\spider-1.0.0.jar `
 **Expected output:**
 
 ```
-Crawl complete. Indexed 30 pages. Starting JDBM indexing...
+Crawl complete. Indexed 300 pages. Starting JDBM indexing...
 JDBM indexing complete. Database: spider/crawl-output/indexDB
 ```
 
 This creates `spider/crawl-output/indexDB.db` and `indexDB.lg` — the JDBM index files.
-
-> To index 300 pages for the final submission, change `--max-pages 30` to `--max-pages 300`.
 
 ### Spider flags
 
