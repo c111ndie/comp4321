@@ -37,6 +37,15 @@ public class SearchTest {
 
         System.out.println("HTrees loaded successfully.");
 
+        if (true)
+        {
+        // Check if "books" exists in the dictionary for debugging
+            Integer widBooks = (Integer) wordToWordId.get("books");
+            Integer widBook = (Integer) wordToWordId.get("book");
+            System.out.println("wordToWordId.get('books') = " + widBooks);
+            System.out.println("wordToWordId.get('book') = " + widBook);
+        }
+
         // StopStem requires stopwords file
         String stopwordsFile = "stopwords.txt";
         StopStem stopStem;
@@ -65,13 +74,15 @@ public class SearchTest {
             System.out.println("=== End diagnostic ===\n");
         }
         String[] testQueries = {
-            "the world of computers",
-            "computer",
-            "hkust",
-            "\"hong kong\"",
-            "news \"hong kong\"",
-            "movi maintain",
-            "movi"              
+//            "the world of computers",
+//            "computer",
+//            "hkust",
+            "imdb rate",
+            "detailsful"
+//            "\"hong kong\"",
+//            "news \"hong kong\"",
+//            "movi maintain",
+//            "movi"              
         };
 
         for (String queryStr : testQueries) {
