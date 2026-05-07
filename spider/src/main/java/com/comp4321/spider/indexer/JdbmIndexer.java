@@ -145,6 +145,14 @@ public class JdbmIndexer {
         meta.topBodyStems = topStems;
         pageMetadata.put(pageId, meta);
 
+        // Update total document count in pageMetadata under key -1
+        Integer currentTotal = (Integer) pageMetadata.get(-1);
+        if (currentTotal == null) {
+            currentTotal = 0;
+        }
+        currentTotal++;
+        pageMetadata.put(-1, currentTotal);
+
         recman.commit();
     }
 

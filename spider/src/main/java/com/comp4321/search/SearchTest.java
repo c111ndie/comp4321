@@ -15,7 +15,7 @@ import java.util.*;
 public class SearchTest {
 
     public static void main(String[] args) throws IOException {
-        String dbName = "crawl-output/indexDB";
+        String dbName = "spider/crawl-output/indexDB";
         RecordManager recman = RecordManagerFactory.createRecordManager(dbName);
 
         Long wordIdRec = (Long) recman.getNamedObject("wordToWordId");
@@ -36,15 +36,6 @@ public class SearchTest {
         HTree titleInvertedIndex = HTree.load(recman, titleIdRec);
 
         System.out.println("HTrees loaded successfully.");
-
-        if (true)
-        {
-        // Check if "books" exists in the dictionary for debugging
-            Integer widBooks = (Integer) wordToWordId.get("books");
-            Integer widBook = (Integer) wordToWordId.get("book");
-            System.out.println("wordToWordId.get('books') = " + widBooks);
-            System.out.println("wordToWordId.get('book') = " + widBook);
-        }
 
         // StopStem requires stopwords file
         String stopwordsFile = "stopwords.txt";
@@ -78,7 +69,7 @@ public class SearchTest {
 //            "computer",
 //            "hkust",
             "imdb rate",
-            "detailsful"
+//            "detailsful"
 //            "\"hong kong\"",
 //            "news \"hong kong\"",
 //            "movi maintain",

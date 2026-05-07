@@ -37,8 +37,10 @@ public class Search {
         Integer storedTotal = (Integer) pageMeta.get(-1);
         if (storedTotal != null) {
             this.totalDocuments = storedTotal;
-        } else {
+        } 
+        else {
             // Fallback: count document IDs from pageMeta
+            System.out.println("Fallback");
             int count = 0;
             FastIterator keys = pageMeta.keys();
             Object key;
@@ -63,6 +65,7 @@ public class Search {
             this.totalDocuments = storedTotal;
         } else {
             // Fallback: count document IDs from pageMeta
+            System.out.println("Fallback");
             int count = 0;
             FastIterator keys = pageMeta.keys();
             Object key;
@@ -87,6 +90,7 @@ public class Search {
             this.totalDocuments = storedTotal;
         } else {
             // Fallback: count document IDs from pageMeta
+            System.out.println("Fallback");
             int count = 0;
             FastIterator keys = pageMeta.keys();
             Object key;
