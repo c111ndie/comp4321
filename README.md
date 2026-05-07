@@ -121,8 +121,8 @@ Run from the **project root**.
 
 ```bash
 java -jar spider/target/spider-1.0.0.jar \
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-  --max-pages 30 \
+  --seed https://hitcslj.github.io/TestPages/testpage.htm \
+  --max-pages 300 \
   --out spider/crawl-output \
   --db-name spider/crawl-output/indexDB \
   --stopwords spider/src/main/resources/stopwords.txt
@@ -131,15 +131,15 @@ java -jar spider/target/spider-1.0.0.jar \
 ### Windows — Command Prompt
 
 ```cmd
-java -jar spider\target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
+java -jar spider\target\spider-1.0.0.jar --seed https://hitcslj.github.io/TestPages/testpage.htm --max-pages 300 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
 ```
 
 ### Windows — PowerShell
 
 ```powershell
 java -jar spider\target\spider-1.0.0.jar `
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm `
-  --max-pages 30 `
+  --seed https://hitcslj.github.io/TestPages/testpage.htm `
+  --max-pages 300 `
   --out spider\crawl-output `
   --db-name spider\crawl-output\indexDB `
   --stopwords spider\src\main\resources\stopwords.txt

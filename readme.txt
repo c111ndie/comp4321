@@ -43,8 +43,8 @@ cd spider
 ./mvnw clean package -DskipTests
 
 java -jar target/spider-1.0.0.jar \
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-  --max-pages 30 \
+  --seed https://hitcslj.github.io/TestPages/testpage.htm \
+  --max-pages 300 \
   --out crawl-output \
   --db-name indexDB \
   --stopwords stopwords.txt
@@ -59,7 +59,7 @@ Windows Command Prompt:
 cd spider
 mvnw.cmd clean package -DskipTests
 
-java -jar target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out crawl-output --db-name indexDB --stopwords stopwords.txt
+java -jar target\spider-1.0.0.jar --seed https://hitcslj.github.io/TestPages/testpage.htm --max-pages 300 --out crawl-output --db-name indexDB --stopwords stopwords.txt
 
 cd ..
 if not exist txt_builder\build mkdir txt_builder\build
@@ -72,8 +72,8 @@ cd spider
 .\mvnw.cmd clean package -DskipTests
 
 java -jar target\spider-1.0.0.jar `
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm `
-  --max-pages 30 `
+  --seed https://hitcslj.github.io/TestPages/testpage.htm `
+  --max-pages 300 `
   --out crawl-output `
   --db-name indexDB `
   --stopwords stopwords.txt
