@@ -9,6 +9,7 @@ import com.comp4321.spider.store.PageStore;
 import org.htmlparser.Parser;
 import org.htmlparser.visitors.TextExtractingVisitor;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +37,22 @@ public final class Main {
         Path outDir = Path.of(parsed.get("out"));
         String dbName = parsed.getOrDefault("db-name", "indexDB");
         String stopwords = parsed.getOrDefault("stopwords", "stopwords.txt");
+        boolean deleteExistingDb = true;  // UNIMPLEMENTED
+
+        // Delete all files in the output directory
+        if (deleteExistingDb) {
+            if (Files.exists(outDir)) {
+                Files.walk(outDir)
+                    .sorted(java.util.Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to delete: " + path, e);
+                        }
+                    });
+            }
+        }
 
         Path dbFile = Paths.get(dbName + ".db");
         Path lgFile = Paths.get(dbName + ".lg");
