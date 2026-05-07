@@ -156,6 +156,8 @@ public final class Spider {
             store.recomputeParentLinks();
             store.checkpoint();
             processedThisRun++;
+            System.out.print("\rCrawled pages: " + processedThisRun);
+            System.out.flush();
 
             if (!config.politenessDelay.isZero()) {
                 Thread.sleep(config.politenessDelay.toMillis());
@@ -181,6 +183,7 @@ public final class Spider {
 
         store.recomputeParentLinks();
         store.checkpoint();
+        System.out.println("\n");
         return new CrawlReport(processedThisRun, frontier.seenCount());
     }
 
