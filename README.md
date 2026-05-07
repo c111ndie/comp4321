@@ -121,8 +121,8 @@ Run from the **project root**.
 
 ```bash
 java -jar spider/target/spider-1.0.0.jar \
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm \
-  --max-pages 30 \
+  --seed https://hitcslj.github.io/TestPages/testpage.htm \
+  --max-pages 300 \
   --out spider/crawl-output \
   --db-name spider/crawl-output/indexDB \
   --stopwords spider/src/main/resources/stopwords.txt
@@ -131,15 +131,15 @@ java -jar spider/target/spider-1.0.0.jar \
 ### Windows — Command Prompt
 
 ```cmd
-java -jar spider\target\spider-1.0.0.jar --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm --max-pages 30 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
+java -jar spider\target\spider-1.0.0.jar --seed https://hitcslj.github.io/TestPages/testpage.htm --max-pages 300 --out spider\crawl-output --db-name spider\crawl-output\indexDB --stopwords spider\src\main\resources\stopwords.txt
 ```
 
 ### Windows — PowerShell
 
 ```powershell
 java -jar spider\target\spider-1.0.0.jar `
-  --seed https://www.cse.ust.hk/~kwtleung/COMP4321/testpage.htm `
-  --max-pages 30 `
+  --seed https://hitcslj.github.io/TestPages/testpage.htm `
+  --max-pages 300 `
   --out spider\crawl-output `
   --db-name spider\crawl-output\indexDB `
   --stopwords spider\src\main\resources\stopwords.txt
@@ -148,13 +148,11 @@ java -jar spider\target\spider-1.0.0.jar `
 **Expected output:**
 
 ```
-Crawl complete. Indexed 30 pages. Starting JDBM indexing...
+Crawl complete. Indexed 300 pages. Starting JDBM indexing...
 JDBM indexing complete. Database: spider/crawl-output/indexDB
 ```
 
 This creates `spider/crawl-output/indexDB.db` and `indexDB.lg` — the JDBM index files.
-
-> To index 300 pages for the final submission, change `--max-pages 30` to `--max-pages 300`.
 
 ### Spider flags
 
