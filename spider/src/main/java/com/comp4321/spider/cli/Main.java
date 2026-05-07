@@ -10,7 +10,9 @@ import org.htmlparser.Parser;
 import org.htmlparser.visitors.TextExtractingVisitor;
 
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +36,12 @@ public final class Main {
         Path outDir = Path.of(parsed.get("out"));
         String dbName = parsed.getOrDefault("db-name", "indexDB");
         String stopwords = parsed.getOrDefault("stopwords", "stopwords.txt");
+
+        Path dbFile = Paths.get(dbName + ".db");
+        Path lgFile = Paths.get(dbName + ".lg");
+        Files.deleteIfExists(dbFile);
+        Files.deleteIfExists(lgFile);
+
 
         Duration politenessDelay = Duration.ofMillis(Long.parseLong(parsed.getOrDefault("delay-ms", "0")));
         String userAgent = parsed.getOrDefault("user-agent", "comp4321-spider/1.0");
