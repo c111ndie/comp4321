@@ -129,7 +129,8 @@ public class JdbmIndexer {
         // Top 10 body stems by frequency
         Map<String, Integer> topStems = new LinkedHashMap<>();
         stemFreqs.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
+                        .thenComparing(Map.Entry.comparingByKey()))
                 .limit(10)
                 .forEach(e -> topStems.put(e.getKey(), e.getValue()));
 

@@ -124,7 +124,7 @@ public class Search {
             if (titlePl == null) titlePl = EMPTY_POSTING_LIST;
 
             // Compute IDF from the union of documents (optional) or from body only
-            Set<Integer> allDocs = new HashSet<>(bodyPl.getPageIds());
+            Set<Integer> allDocs = new TreeSet<>(bodyPl.getPageIds());
             allDocs.addAll(titlePl.getPageIds());
             int df = allDocs.size();                 // document frequency
             double idf = computeIdf(df);             // or computeIdf(bodyPl.getDocumentFrequency()) if you prefer
@@ -137,7 +137,7 @@ public class Search {
             PhraseData phraseData = computePhraseData(phraseWords);
             if (phraseData == null) continue; // unknown word or no documents
             // Compute IDF based on union of documents containing the phrase in body or title
-            Set<Integer> allDocs = new HashSet<>(phraseData.bodyPostingList.getPageIds());
+            Set<Integer> allDocs = new TreeSet<>(phraseData.bodyPostingList.getPageIds());
             allDocs.addAll(phraseData.titlePostingList.getPageIds());
             int df = allDocs.size();
             double idf = computeIdf(df);
@@ -147,15 +147,16 @@ public class Search {
         if (components.isEmpty()) return Collections.emptyList();
 
         // 2. Intersect document sets from all components (OR semantics)
-        Set<Integer> candidates = new HashSet<>();
+        Set<Integer> candidates = new TreeSet<>();
         for (QueryComponent comp : components) {
             candidates.addAll(comp.getDocumentSet());
         }
         if (candidates.isEmpty()) return Collections.emptyList();
 
         // 3. For each candidate document, compute cosine similarity
-        Map<Integer, Double> scores = new HashMap<>();
-        Map<Integer, List<String>> missingTermsMap = new HashMap<>();
+        Map<Integer, Double> scores = new LinkedHashMap<>();
+        Map<Integer, List<String>> missingTermsMap = new LinkedHashMap<>();
+        double queryNorm = computeQueryNorm(components);
 
         for (int docId : candidates) {
             double dotProduct = 0.0;
@@ -175,7 +176,6 @@ public class Search {
             
             Double docNorm = getDocumentNorm(docId);
             if (docNorm == null || docNorm == 0.0) continue;
-            double queryNorm = computeQueryNorm(components);
             double cosine = dotProduct / (docNorm * queryNorm);
             
             missingTermsMap.put(docId, missing);
@@ -259,11 +259,11 @@ public class Search {
 
     private Map<Integer, Integer> computePhraseFreqForField(List<PostingList> postingLists) {
         // Intersect documents containing all words
-        Set<Integer> docsWithAll = new HashSet<>(postingLists.get(0).getPageIds());
+        Set<Integer> docsWithAll = new TreeSet<>(postingLists.get(0).getPageIds());
         for (int i = 1; i < postingLists.size(); i++) {
             docsWithAll.retainAll(postingLists.get(i).getPageIds());
         }
-        Map<Integer, Integer> phraseFreq = new HashMap<>();
+        Map<Integer, Integer> phraseFreq = new LinkedHashMap<>();
         for (int docId : docsWithAll) {
             List<Integer> firstPositions = postingLists.get(0).getPositions(docId);
             int count = 0;
@@ -307,7 +307,7 @@ public class Search {
             this.idf = idf;
             this.TITLE_BOOST = TITLE_BOOST;
             // Union of documents that contain the term in body OR title
-            Set<Integer> docs = new HashSet<>(bodyPl.getPageIds());
+            Set<Integer> docs = new TreeSet<>(bodyPl.getPageIds());
             docs.addAll(titlePl.getPageIds());
             this.docSet = docs;
         }
@@ -349,14 +349,14 @@ public class Search {
             this.phraseData = data;
             this.idf = idf;
             this.TITLE_BOOST = titleBoost;
-            Set<Integer> allDocs = new HashSet<>(data.bodyPostingList.getPageIds());
+            Set<Integer> allDocs = new TreeSet<>(data.bodyPostingList.getPageIds());
             allDocs.addAll(data.titlePostingList.getPageIds());
             this.docSet = allDocs;
         }
 
         @Override
         public Set<Integer> getDocumentSet() { 
-            Set<Integer> all = new HashSet<>(phraseData.bodyPostingList.getPageIds());
+            Set<Integer> all = new TreeSet<>(phraseData.bodyPostingList.getPageIds());
             all.addAll(phraseData.titlePostingList.getPageIds());
             return all;
         }
@@ -408,7 +408,7 @@ public class Search {
             this.frequency = freq;
         }
         List<Integer> getDocuments() { return documents; }
-        Set<Integer> getPageIds() { return new HashSet<>(documents); }
+        Set<Integer> getPageIds() { return new TreeSet<>(documents); }
         int getDocumentFrequency() { return documents.size(); }
         int getFrequency(int docId) { return frequency.getOrDefault(docId, 0); }
         boolean containsDocument(int docId) { return frequency.containsKey(docId); }
@@ -427,7 +427,9 @@ public class Search {
 
         @Override
         public int compareTo(SearchResult o) {
-            return Double.compare(o.score, this.score);
+            int byScore = Double.compare(o.score, this.score);
+            if (byScore != 0) return byScore;
+            return Integer.compare(this.docId, o.docId);
         }
     }
 
