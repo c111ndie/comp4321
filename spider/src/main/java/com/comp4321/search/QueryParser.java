@@ -31,18 +31,18 @@ public class QueryParser {
                     for (String w : words) {
                         String lower = w.toLowerCase();
                         if (!stopStem.isStopWord(lower)) {
-                            if (!lower.isEmpty()) stemmedPhrase.add(lower);  // use original word, not stem
-                            //String stem = stopStem.stem(lower);
-                            //if (!stem.isEmpty()) stemmedPhrase.add(stem);
+                            //if (!lower.isEmpty()) stemmedPhrase.add(lower);  // use original word, not stem
+                            String stem = stopStem.stem(lower);
+                            if (!stem.isEmpty()) stemmedPhrase.add(stem);
                         }
                     }
                     if (!stemmedPhrase.isEmpty()) phrases.add(stemmedPhrase);
                 } else {
                     String lower = token.toLowerCase();
                     if (!stopStem.isStopWord(lower)) {
-                        if (!lower.isEmpty()) singleTerms.add(lower);  // use original word, not stem
-                        //String stem = stopStem.stem(lower);
-                        //if (!stem.isEmpty()) singleTerms.add(stem);
+                        //if (!lower.isEmpty()) singleTerms.add(lower);  // use original word, not stem
+                        String stem = stopStem.stem(lower);
+                        if (!stem.isEmpty()) singleTerms.add(stem);
                     }
                 }
             }
